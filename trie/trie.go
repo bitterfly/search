@@ -75,7 +75,7 @@ func (t *Trie) PutLambda(word []byte, lambda func(uint64) uint64, defaultValue u
 	inTrieValue := t.Get(word)
 	if inTrieValue != nil {
 		t.Put(word, lambda(*inTrieValue))
+	} else {
+		t.Put(word, defaultValue)
 	}
-
-	t.Put(word, defaultValue)
 }

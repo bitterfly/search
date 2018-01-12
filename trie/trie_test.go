@@ -110,6 +110,20 @@ func TestTrie_Put_and_Get(t *testing.T) {
 	}
 }
 
+func TestTrie_PutLambda(t *testing.T) {
+	trie := New()
+
+	trie.Put([]byte("foo"), 42)
+	trie.Put([]byte("fob"), 43)
+	trie.Put([]byte("bar"), 44)
+
+	trie.PutLambda([]byte("fob"), func(x uint64) uint64 { return x + 10 }, 0)
+	y := *trie.Get([]byte("fob"))
+	if y != 53 {
+		t.Errorf("cannot put with lambda: got %d instead of 53", y)
+	}
+}
+
 func makeBenchmarkWords(size int) [][]byte {
 	randomStrings := make([][]byte, size)
 
