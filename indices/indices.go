@@ -1,19 +1,19 @@
 package indices
 
 type PostingData struct {
-	Document uint64
-	Term uint64
-	Times uint64
+	Document uint32
+	Term uint32
+	Times uint32
 }
 
 type Posting struct {
-	Data int64
-	Next int64
+	Data int32
+	Next int32
 }
 
 type PostingList struct {
-	First int64
-	Last int64
+	First int32
+	Last int32
 }
 
 type Index struct {
@@ -25,4 +25,11 @@ type TotalIndex struct {
 	Forward Index
 	Inverse Index
 	Data []PostingData
+	Documents []Document
+}
+
+type Document struct {
+	Name string
+	Class string
+	Length uint32
 }
