@@ -7,3 +7,7 @@ type Document struct {
 
 	TermCounts trie.Trie
 }
+
+func (t *TotalIndex) Add(d *Document) {
+
+}

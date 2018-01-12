@@ -28,7 +28,7 @@ type TotalIndex struct {
 	Inverse    Index
 	Data       []PostingData
 	Documents  []DocumentInfo
-	Dictionary trie.Trie
+	Dictionary trie.Dictionary
 }
 
 type DocumentInfo struct {
