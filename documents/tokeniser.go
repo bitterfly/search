@@ -2,7 +2,7 @@ package documents
 
 import "github.com/jdkato/prose/tokenize"
 
-func TokeniseSentence(sentence []byte) [][]byte {
+func TokeniseSentence(sentence string) [][]byte {
 	tokeniser := tokenize.NewTreebankWordTokenizer()
 
 	tokens := make([][]byte, 1)
