@@ -11,12 +11,21 @@ import (
 	"github.com/jbowtie/gokogiri/xml"
 )
 
-func ParseFiles(filenames <-chan string, documents chan<- *Document) {
+type ReutersParser struct{}
+
+func NewReutersParser() *ReutersParser {
+	return &ReutersParser{}
+}
+
+func (r *ReutersParser) ParseFiles(filenames <-chan string, documents chan<- *Document) {
 	for f := range filenames {
-		documentsInFile, err := ParseFile(f)
+		log.Printf("start parsing %s", f)
+		documentsInFile, err := r.ParseFile(f)
 		if err != nil {
 			log.Printf("Unable to parse file %s: %s", f, err)
 			// too lazy for proper error handling
+		} else {
+			log.Printf("finish parsing %s", f)
 		}
 
 		for _, doc := range documentsInFile {
@@ -25,7 +34,7 @@ func ParseFiles(filenames <-chan string, documents chan<- *Document) {
 	}
 }
 
-func ParseFile(filename string) ([]*Document, error) {
+func (r *ReutersParser) ParseFile(filename string) ([]*Document, error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open file: %s", err)
@@ -36,10 +45,10 @@ func ParseFile(filename string) ([]*Document, error) {
 		return nil, fmt.Errorf("Unable to read file: %s", err)
 	}
 
-	return Parse(data)
+	return r.Parse(data)
 }
 
-func Parse(data []byte) ([]*Document, error) {
+func (r *ReutersParser) Parse(data []byte) ([]*Document, error) {
 	xml, err := gokogiri.ParseXml(data)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse file: %s", err)
@@ -54,7 +63,7 @@ func Parse(data []byte) ([]*Document, error) {
 
 	for i := range docnodes {
 		doc := Document{}
-		err = parseDocument(docnodes[i], &doc)
+		err = r.parseDocument(docnodes[i], &doc)
 		if err != nil {
 			// return nil, fmt.Errorf("Unable to parse document: %s", err)
 			log.Printf("Unable to parse document: %s", err)
@@ -66,7 +75,7 @@ func Parse(data []byte) ([]*Document, error) {
 	return documents, nil
 }
 
-func parseDocument(node xml.Node, document *Document) error {
+func (r *ReutersParser) parseDocument(node xml.Node, document *Document) error {
 	titleNode, err := htmlparsing.First(node, ".//TITLE")
 	if err == nil {
 		// don't care if there's no title

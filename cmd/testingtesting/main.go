@@ -30,7 +30,15 @@ func main() {
 		close(files)
 	}()
 
-	utils.Parallel(func() {
-		documents.ParseFiles(files, docs)
-	}, runtime.NumCPU())
+	go func() {
+		utils.Parallel(func() {
+			documents.NewReutersParser().ParseFiles(files, docs)
+		}, runtime.NumCPU())
+		close(docs)
+	}()
+
+	for _ = range docs {
+		// do nothing
+	}
+
 }
