@@ -10,7 +10,17 @@ type Transition struct {
 type Trie struct {
 	maxIndex    int32
 	transitions map[Transition]int32
+	children    map[int32][]Transition
 	values      map[int32]uint64
+}
+
+func New() *Trie {
+	return &Trie{
+		maxIndex:    0,
+		transitions: make(map[Transition]int32),
+		children:    make(map[int32][]Transition),
+		values:      make(map[int32]uint64),
+	}
 }
 
 func (t *Trie) traverseWith(word []byte) (int32, []byte) {
@@ -28,20 +38,13 @@ func (t *Trie) traverseWith(word []byte) (int32, []byte) {
 	return destination, nil
 }
 
-func New() *Trie {
-	return &Trie{
-		maxIndex:    0,
-		transitions: make(map[Transition]int32),
-		values:      make(map[int32]uint64),
-	}
-}
-
 func (t *Trie) Put(word []byte, value uint64) uint64 {
 	node, rest := t.traverseWith(word)
 	if rest != nil {
 		for _, letter := range rest {
 			t.maxIndex += 1
 			t.transitions[Transition{id: node, label: letter}] = t.maxIndex
+			t.children[node] = append(t.children[node], Transition{id: t.maxIndex, label: letter})
 			node = t.maxIndex
 		}
 	}
@@ -80,6 +83,23 @@ func (t *Trie) PutLambda(word []byte, lambda func(uint64) uint64, defaultValue u
 	}
 }
 
-func (t *Trie) Walk(operation func([]byte, uint64)) {
+func (t *Trie) walk(node int32, word *[]byte, operation func([]byte, uint64)) {
+	value, ok := t.values[node]
 
+	//If final apply operation
+	if ok {
+		operation(*word, value)
+	}
+
+	for _, transition := range t.children[node] {
+		*word = append(*word, transition.label)
+		t.walk(transition.id, word, operation)
+		*word = (*word)[:len(*word)-1]
+	}
+
+}
+
+func (t *Trie) Walk(operation func([]byte, uint64)) {
+	var word []byte
+	t.walk(0, &word, operation)
 }

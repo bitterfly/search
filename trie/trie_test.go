@@ -110,6 +110,7 @@ func TestTrie_Walk(t *testing.T) {
 
 	trie := New()
 
+	trie.Put([]byte("fo"), 41)
 	trie.Put([]byte("foo"), 42)
 	trie.Put([]byte("fob"), 43)
 	trie.Put([]byte("bar"), 44)
@@ -122,8 +123,8 @@ func TestTrie_Walk(t *testing.T) {
 		values = append(values, value)
 	})
 
-	assert.Equal(words, []string{"bar", "fob", "foo"})
-	assert.Equal(values, []uint64{44, 43, 42})
+	assert.Equal(words, []string{"bar", "fo", "fob", "foo"})
+	assert.Equal(values, []uint64{44, 41, 43, 42})
 }
 
 func makeBenchmarkWords(size int) [][]byte {
