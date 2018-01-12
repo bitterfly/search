@@ -14,14 +14,14 @@ func TokeniseSentence(sentence string) [][]byte {
 	return tokens
 }
 
-func Tokenise(text []byte) [][]byte {
-	sentenceSplitter := tokenize.NewPragmaticSegmenter("en")
+func Tokenise(text string) [][]byte {
+	sentenceSplitter, _ := tokenize.NewPragmaticSegmenter("en")
 	sentences := sentenceSplitter.Tokenize(text)
 
 	tokens := make([][]byte, len(sentences))
 
 	for _, sentence := range sentences {
-		tokens = append(tokes, TokeniseSentence(setence))
+		tokens = append(tokens, TokeniseSentence(sentence)...)
 	}
 
 	return tokens
