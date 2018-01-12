@@ -39,6 +39,7 @@ func (r *ReutersParser) ParseFile(filename string) ([]*Document, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open file: %s", err)
 	}
+	defer f.Close()
 
 	data, err := ioutil.ReadAll(f)
 	if err != nil {

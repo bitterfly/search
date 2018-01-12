@@ -1,9 +1,15 @@
 package processing
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestTokeniseSentence(t *testing.T) {
-	e := NewEnglishTokeniser()
+	e, err := NewEnglishTokeniser(strings.NewReader(""))
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	tokens := e.tokeniseSentence("I am a cat.")
 
@@ -33,7 +39,10 @@ func TestTokeniseSentence(t *testing.T) {
 }
 
 func TestTokenise(t *testing.T) {
-	e := NewEnglishTokeniser()
+	e, err := NewEnglishTokeniser(strings.NewReader(""))
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	sentence := "In a hole in the ground there lived a hobbit. Not a nasty, dirty, wet hole, filled with the ends of worms and an oozy smell, nor yet a dry, bare, sandy hole with nothing in it to sit down on or to eat: it was a hobbit-hole, and that means comfort."
 
@@ -60,7 +69,10 @@ func TestTokenise(t *testing.T) {
 }
 
 func TestNormalise(t *testing.T) {
-	e := NewEnglishTokeniser()
+	e, err := NewEnglishTokeniser(strings.NewReader(""))
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	tokens := e.Tokenise("I'm many cats.")
 	normalisedTokens := e.NormaliseMany(tokens)

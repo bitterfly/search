@@ -3,11 +3,13 @@ package processing
 import (
 	"bufio"
 	"io"
+	"os"
 	"strings"
+	"sync"
 	"unicode"
 
+	"github.com/DexterLB/prose/tokenize"
 	"github.com/DexterLB/search/trie"
-	"github.com/jdkato/prose/tokenize"
 	"github.com/kljensen/snowball"
 )
 
@@ -15,13 +17,27 @@ type EnglishTokeniser struct {
 	stopWords trie.Trie
 }
 
-func NewEnglishTokeniser(stopWordList io.Reader) *EnglishTokeniser {
-	tok := &EnglishTokeniser{}
+func NewEnglishTokeniserFromFile(stopWordFile string) (*EnglishTokeniser, error) {
+	f, err := os.Open(stopWordFile)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	return NewEnglishTokeniser(f)
+}
+
+func NewEnglishTokeniser(stopWordList io.Reader) (*EnglishTokeniser, error) {
+	tok := &EnglishTokeniser{
+		stopWords: *trie.New(),
+	}
 
 	scanner := bufio.NewScanner(stopWordList)
 	for scanner.Scan() {
-		tok.stopWords.Put(scanner.Text, 1)
+		tok.stopWords.Put([]byte(scanner.Text()), 1)
 	}
+
+	return tok, scanner.Err()
 }
 
 func (e *EnglishTokeniser) notPunctuation(word string) bool {
@@ -56,15 +72,19 @@ func (e *EnglishTokeniser) tokeniseSentence(sentence string) []string {
 	return tokens
 }
 
+var tokeniserLock sync.Mutex
+
 func (e *EnglishTokeniser) Tokenise(text string) []string {
-	sentenceSplitter, _ := tokenize.NewPragmaticSegmenter("en")
+	sentenceSplitter, _ := tokenize.NewThreadSafePragmaticSegmenter("en")
 	sentences := sentenceSplitter.Tokenize(text)
 
 	tokens := make([]string, 0)
 
+	tokeniserLock.Lock() // the PragmaticSegmenter is unsafe :(
 	for _, sentence := range sentences {
 		tokens = append(tokens, e.tokeniseSentence(sentence)...)
 	}
+	tokeniserLock.Unlock()
 
 	return tokens
 }

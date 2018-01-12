@@ -7,6 +7,8 @@ import (
 	"runtime"
 
 	"github.com/DexterLB/search/documents"
+	"github.com/DexterLB/search/indices"
+	"github.com/DexterLB/search/processing"
 	"github.com/DexterLB/search/utils"
 )
 
@@ -22,8 +24,14 @@ func GetXMLs(folder string, into chan<- string) {
 }
 
 func main() {
-	files := make(chan string)
-	docs := make(chan *documents.Document)
+	files := make(chan string, 200)
+	docs := make(chan *documents.Document, 200)
+	countDocs := make(chan *indices.Document, 200)
+
+	tokeniser, err := processing.NewEnglishTokeniserFromFile("/tmp/stopwords")
+	if err != nil {
+		log.Fatal("unable to get stopwords: %s", err)
+	}
 
 	go func() {
 		GetXMLs(os.Args[1], files)
@@ -37,8 +45,15 @@ func main() {
 		close(docs)
 	}()
 
-	for _ = range docs {
-		// do nothing
+	go func() {
+		utils.Parallel(func() {
+			processing.CountInDocuments(docs, tokeniser, countDocs)
+		}, runtime.NumCPU())
+		close(docs)
+	}()
+
+	for countDoc := range countDocs {
+		countDoc.Print()
 	}
 
 }
