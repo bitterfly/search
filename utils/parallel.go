@@ -14,6 +14,7 @@ func Parallel(do func(), workers int) {
 			wg.Done()
 		}()
 	}
+	wg.Wait()
 }
 
 func ParallelCheck(do func() error, workers int, errors chan<- error) {
