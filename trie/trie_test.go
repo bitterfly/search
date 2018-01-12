@@ -124,7 +124,7 @@ func makeBenchmarkWords(size int) [][]byte {
 	return randomStrings
 }
 
-func benchmarkPut(numWords int, b *testing.B) *Trie {
+func benchmarkPut(numWords int, b *testing.B) {
 	words := makeBenchmarkWords(numWords)
 
 	trie := New()
@@ -137,19 +137,33 @@ func benchmarkPut(numWords int, b *testing.B) *Trie {
 			trie.Put(words[i], i)
 		}
 	}
-
-	return trie
 }
 
-/*
-func benchmarkGet(b *testing.B, trie *Trie) {
-	for i := uint64(0); i < uint64(b.N); i++ {
-		trie.Get(randomStrings[i])
+func benchmarkGet(numWords int, b *testing.B) {
+	words := makeBenchmarkWords(numWords)
+
+	trie := New()
+
+	for i := uint64(0); i < uint64(numWords); i++ {
+		trie.Put(words[i], i)
+	}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for j := 0; j < b.N; j++ {
+		for i := uint64(0); i < uint64(numWords); i++ {
+			trie.Get(words[i])
+		}
 	}
 }
-*/
 
 func BenchmarkPut10(b *testing.B)    { benchmarkPut(10, b) }
 func BenchmarkPut100(b *testing.B)   { benchmarkPut(100, b) }
 func BenchmarkPut1000(b *testing.B)  { benchmarkPut(1000, b) }
 func BenchmarkPut10000(b *testing.B) { benchmarkPut(10000, b) }
+
+func BenchmarkGet10(b *testing.B)    { benchmarkGet(10, b) }
+func BenchmarkGet100(b *testing.B)   { benchmarkGet(100, b) }
+func BenchmarkGet1000(b *testing.B)  { benchmarkGet(1000, b) }
+func BenchmarkGet10000(b *testing.B) { benchmarkGet(10000, b) }
