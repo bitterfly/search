@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"strings"
-	"sync"
 	"unicode"
 
 	"github.com/DexterLB/prose/tokenize"
@@ -72,19 +71,15 @@ func (e *EnglishTokeniser) tokeniseSentence(sentence string) []string {
 	return tokens
 }
 
-var tokeniserLock sync.Mutex
-
 func (e *EnglishTokeniser) Tokenise(text string) []string {
 	sentenceSplitter, _ := tokenize.NewThreadSafePragmaticSegmenter("en")
 	sentences := sentenceSplitter.Tokenize(text)
 
 	tokens := make([]string, 0)
 
-	tokeniserLock.Lock() // the PragmaticSegmenter is unsafe :(
 	for _, sentence := range sentences {
 		tokens = append(tokens, e.tokeniseSentence(sentence)...)
 	}
-	tokeniserLock.Unlock()
 
 	return tokens
 }

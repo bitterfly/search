@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/DexterLB/htmlparsing"
 	"github.com/jbowtie/gokogiri"
@@ -67,6 +68,9 @@ func (r *ReutersParser) Parse(data []byte) ([]*Document, error) {
 		err = r.parseDocument(docnodes[i], &doc)
 		if err != nil {
 			// return nil, fmt.Errorf("Unable to parse document: %s", err)
+			if strings.Contains(err.Error(), "Unable to parse document body") {
+				continue // this message is too irritating
+			}
 			log.Printf("Unable to parse document: %s", err)
 			continue
 		}

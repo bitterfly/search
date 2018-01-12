@@ -25,8 +25,8 @@ func GetXMLs(folder string, into chan<- string) {
 
 func main() {
 	files := make(chan string, 200)
-	docs := make(chan *documents.Document, 200)
-	countDocs := make(chan *indices.Document, 200)
+	docs := make(chan *documents.Document, 20000)
+	countDocs := make(chan *indices.Document, 20000)
 
 	tokeniser, err := processing.NewEnglishTokeniserFromFile("/tmp/stopwords")
 	if err != nil {
@@ -49,7 +49,7 @@ func main() {
 		utils.Parallel(func() {
 			processing.CountInDocuments(docs, tokeniser, countDocs)
 		}, runtime.NumCPU())
-		close(docs)
+		close(countDocs)
 	}()
 
 	for countDoc := range countDocs {
