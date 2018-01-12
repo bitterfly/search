@@ -1,6 +1,82 @@
 package trie
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/elgs/gostrgen"
+)
+
+func TestTraverse_ABCD(t *testing.T) {
+	trie := &Trie{
+		maxIndex: 3,
+		transitions: map[Transition]int32{
+			Transition{id: 0, label: byte('a')}: 1,
+			Transition{id: 1, label: byte('b')}: 2,
+			Transition{id: 2, label: byte('c')}: 3,
+		},
+		values: map[int32]uint64{
+			3: uint64(42),
+		},
+	}
+
+	destination, rest := trie.traverseWith([]byte("abcd"))
+
+	if rest == nil {
+		t.Errorf("Result from traversing with 'abcd' when 'abc' is in trie is null, but has to be 'd'\n")
+	}
+
+	if len(rest) != 1 {
+		t.Errorf("Result from traversing with 'abcd' when 'abc' is in trie is %s, but has to be 'd'\n", string(rest))
+	}
+
+	if destination != int32(3) {
+		t.Errorf("Destination is %d but it has to be 3\n", destination)
+	}
+}
+
+func TestTraverse_ABC(t *testing.T) {
+	trie := &Trie{
+		maxIndex: 3,
+		transitions: map[Transition]int32{
+			Transition{id: 0, label: byte('a')}: 1,
+			Transition{id: 1, label: byte('b')}: 2,
+			Transition{id: 2, label: byte('c')}: 3,
+		},
+		values: map[int32]uint64{
+			3: uint64(42),
+		},
+	}
+
+	destination, rest := trie.traverseWith([]byte("abc"))
+
+	if rest != nil {
+		t.Errorf("Result from traversing with 'abc' when 'abc' is in trie is not null: %s\n", string(rest))
+	}
+
+	if destination != int32(3) {
+		t.Errorf("Destination is %d but it has to be 3\n", destination)
+	}
+}
+
+func TestGet_ABC(t *testing.T) {
+	trie := &Trie{
+		maxIndex: 3,
+		transitions: map[Transition]int32{
+			Transition{id: 0, label: byte('a')}: 1,
+			Transition{id: 1, label: byte('b')}: 2,
+			Transition{id: 2, label: byte('c')}: 3,
+		},
+		values: map[int32]uint64{
+			3: uint64(42),
+		},
+	}
+
+	value := trie.Get([]byte("abc"))
+
+	if *value != uint64(42) {
+		t.Errorf("Should get value=42 when traversing with word in the trie, but got %d instead\n", *value)
+	}
+}
 
 func TestTrie_Put_and_Get(t *testing.T) {
 	trie := New()
@@ -31,5 +107,45 @@ func TestTrie_Put_and_Get(t *testing.T) {
 
 	if trie.GetOrPut([]byte("qux"), 1) != 5 {
 		t.Errorf("cannot put or get qux when it is present")
+	}
+}
+
+func BenchmarkSpeed(b *testing.B) {
+	words := makeBenchmarkWords(size)
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		trie := benchmarkPut(words, i)
+		benchmarkGet(trie, i)
+	}
+
+}
+
+func makeBenchmarkWords(size int) [][]byte {
+	randomStrings := make([][]byte, size)
+
+	for i := 0; i < size; i++ {
+		str, err := gostrgen.RandGen(100, gostrgen.Lower, "", "")
+		if err != nil {
+			str = "abc"
+		}
+		randomStrings[i] = []byte(str)
+	}
+}
+
+func benchmarkPut(times int, words [][]byte) *Trie {
+	trie := New()
+
+	for i := uint64(0); i < uint64(times); i++ {
+		trie.Put(words[i], i)
+	}
+
+	return trie
+}
+
+func benchmarkGet(b *testing.B, trie *Trie) {
+	for i := uint64(0); i < uint64(b.N); i++ {
+		trie.Get(randomStrings[i])
 	}
 }
