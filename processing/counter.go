@@ -10,17 +10,13 @@ func Count(doc *documents.Document, tokeniser Tokeniser) *indices.Document {
 	idoc.Name = doc.Title
 	idoc.Classes = doc.Classes
 
-	terms := tokeniser.Tokenise(doc.Body)
-
-	for i := range terms {
-		terms[i] = tokeniser.Normalise(terms[i])
-
+	tokeniser.GetTerms(doc.Body, func(term string) {
 		idoc.TermCounts.PutLambda(
-			[]byte(terms[i]),
+			[]byte(term),
 			func(x uint64) uint64 { return x + 1 },
 			1,
 		)
-	}
+	})
 
 	return idoc
 }

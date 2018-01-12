@@ -1,18 +1,27 @@
 package processing
 
 import (
+	"bufio"
+	"io"
 	"strings"
 	"unicode"
 
+	"github.com/DexterLB/search/trie"
 	"github.com/jdkato/prose/tokenize"
 	"github.com/kljensen/snowball"
 )
 
 type EnglishTokeniser struct {
+	stopWords trie.Trie
 }
 
-func NewEnglishTokeniser() *EnglishTokeniser {
-	return &EnglishTokeniser{}
+func NewEnglishTokeniser(stopWordList io.Reader) *EnglishTokeniser {
+	tok := &EnglishTokeniser{}
+
+	scanner := bufio.NewScanner(stopWordList)
+	for scanner.Scan() {
+		tok.stopWords.Put(scanner.Text, 1)
+	}
 }
 
 func (e *EnglishTokeniser) notPunctuation(word string) bool {
@@ -77,4 +86,22 @@ func (e *EnglishTokeniser) NormaliseMany(tokens []string) []string {
 	}
 
 	return normalised
+}
+
+func (e *EnglishTokeniser) IsStopWord(word string) bool {
+	return e.stopWords.Get([]byte(word)) != nil
+}
+
+func (e *EnglishTokeniser) GetTerms(text string, operation func(string)) {
+	terms := e.Tokenise(text)
+	for i := range terms {
+		if e.IsStopWord(terms[i]) {
+			continue
+		}
+		terms[i] = e.Normalise(terms[i])
+		if e.IsStopWord(terms[i]) {
+			continue // maybe don't need the second check?
+		}
+		operation(terms[i])
+	}
 }
