@@ -5,6 +5,7 @@ import (
 	"unicode"
 
 	"github.com/jdkato/prose/tokenize"
+	"github.com/kljensen/snowball"
 )
 
 func notPunctuation(word string) bool {
@@ -26,29 +27,44 @@ func notPunctuation(word string) bool {
 	return true
 }
 
-func tokeniseSentence(sentence string) [][]byte {
+func tokeniseSentence(sentence string) []string {
 	tokeniser := tokenize.NewTreebankWordTokenizer()
 
-	tokens := make([][]byte, 0)
+	tokens := make([]string, 0)
 	for _, word := range tokeniser.Tokenize(sentence) {
 		if notPunctuation(word) {
-			tokens = append(tokens, []byte(word))
+			tokens = append(tokens, word)
 		}
 	}
 
 	return tokens
 }
 
-func Tokenise(text string) [][]byte {
+func Tokenise(text string) []string {
 	sentenceSplitter, _ := tokenize.NewPragmaticSegmenter("en")
 	sentences := sentenceSplitter.Tokenize(text)
 
-	tokens := make([][]byte, 0)
+	tokens := make([]string, 0)
 
 	for _, sentence := range sentences {
-
 		tokens = append(tokens, tokeniseSentence(sentence)...)
 	}
 
 	return tokens
+}
+
+func Normalise(tokens []string) []string {
+	normalisedTokens := make([]string, len(tokens))
+
+	for i, token := range tokens {
+		lower := strings.ToLower(token)
+		stemmed, err := snowball.Stem(lower, "english", true)
+		if err == nil {
+			normalisedTokens[i] = stemmed
+		} else {
+			normalisedTokens[i] = lower
+		}
+	}
+
+	return normalisedTokens
 }
