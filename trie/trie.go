@@ -70,3 +70,12 @@ func (t *Trie) GetOrPut(word []byte, value uint64) uint64 {
 
 	return t.Put(word, value)
 }
+
+func (t *Trie) PutLambda(word []byte, lambda func(uint64) uint64, defaultValue uint64) {
+	inTrieValue := t.Get(word)
+	if inTrieValue != nil {
+		t.Put(word, lambda(*inTrieValue))
+	}
+
+	t.Put(word, defaultValue)
+}
