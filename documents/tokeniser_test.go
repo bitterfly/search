@@ -42,4 +42,15 @@ func TestTokenise(t *testing.T) {
 			t.Errorf("Token should be %s but is %s\n", string(token), correctTokens[i])
 		}
 	}
+
+	sentence = "Could've. Would've! Should've?"
+	tokens = Tokenise(sentence)
+
+	correctTokens = []string{"Could", "'ve", "Would", "'ve", "Should", "'ve"}
+
+	for i, token := range tokens {
+		if string(token) != correctTokens[i] {
+			t.Errorf("Token should be %s but is %s\n", string(token), correctTokens[i])
+		}
+	}
 }
