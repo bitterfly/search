@@ -5,23 +5,11 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"sync"
 
 	"github.com/DexterLB/htmlparsing"
 	"github.com/jbowtie/gokogiri"
 	"github.com/jbowtie/gokogiri/xml"
 )
-
-func ParseFilesParallel(filenames <-chan string, documents chan<- *Document, workers int) {
-	wg := &sync.WaitGroup{}
-	wg.Add(workers)
-	for i := 0; i < workers; i++ {
-		go func() {
-			ParseFiles(filenames, documents)
-			wg.Done()
-		}()
-	}
-}
 
 func ParseFiles(filenames <-chan string, documents chan<- *Document) {
 	for f := range filenames {
@@ -72,7 +60,7 @@ func Parse(data []byte) ([]*Document, error) {
 			log.Printf("Unable to parse document: %s", err)
 			continue
 		}
-		documents = append(documents, doc)
+		documents = append(documents, &doc)
 	}
 
 	return documents, nil
