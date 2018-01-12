@@ -5,6 +5,7 @@ import (
 	"unicode"
 
 	"github.com/jdkato/prose/tokenize"
+	"github.com/kljensen/snowball"
 )
 
 func notPunctuation(word string) bool {
@@ -50,4 +51,20 @@ func Tokenise(text string) []string {
 	}
 
 	return tokens
+}
+
+func Normalise(tokens []string) []string {
+	normalisedTokens := make([]string, len(tokens))
+
+	for i, token := range tokens {
+		lower := strings.ToLower(token)
+		stemmed, err := snowball.Stem(lower, "english", true)
+		if err == nil {
+			normalisedTokens[i] = stemmed
+		} else {
+			normalisedTokens[i] = lower
+		}
+	}
+
+	return normalisedTokens
 }

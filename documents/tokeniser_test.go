@@ -54,3 +54,39 @@ func TestTokenise(t *testing.T) {
 		}
 	}
 }
+
+func TestNormalise(t *testing.T) {
+	tokens := Tokenise("I'm many cats.")
+	normalisedTokens := Normalise(tokens)
+
+	correctNormalisedTokens := []string{"i", "'m", "mani", "cat"}
+
+	for i, token := range normalisedTokens {
+		if token != correctNormalisedTokens[i] {
+			t.Errorf("Token should be %s but is %s\n", correctNormalisedTokens[i], token)
+		}
+	}
+
+	tokens = Tokenise("My dogs are actually one dog!")
+	normalisedTokens = Normalise(tokens)
+
+	correctNormalisedTokens = []string{"my", "dog", "are", "actual", "one", "dog"}
+
+	for i, token := range normalisedTokens {
+		if token != correctNormalisedTokens[i] {
+			t.Errorf("Token should be /%s/ but is /%s/\n", correctNormalisedTokens[i], token)
+		}
+	}
+
+	tokens = Tokenise("If I'm dying you all die with me")
+	normalisedTokens = Normalise(tokens)
+
+	correctNormalisedTokens = []string{"if", "i", "'m", "die", "you", "all", "die", "with", "me"}
+
+	for i, token := range normalisedTokens {
+		if token != correctNormalisedTokens[i] {
+			t.Errorf("Token should be /%s/ but is /%s/\n", correctNormalisedTokens[i], token)
+		}
+	}
+
+}
