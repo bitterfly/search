@@ -1,9 +1,11 @@
-package documents
+package processing
 
 import "testing"
 
 func TestTokeniseSentence(t *testing.T) {
-	tokens := tokeniseSentence("I am a cat.")
+	e := NewEnglishTokeniser()
+
+	tokens := e.tokeniseSentence("I am a cat.")
 
 	if len(tokens) != 4 {
 		t.Errorf("Tokeniser found %d tokens in the sentence 'I am a cat'\n", len(tokens))
@@ -16,7 +18,7 @@ func TestTokeniseSentence(t *testing.T) {
 		}
 	}
 
-	tokens = tokeniseSentence("I'm a cat.")
+	tokens = e.tokeniseSentence("I'm a cat.")
 
 	if len(tokens) != 4 {
 		t.Errorf("Tokeniser found %d tokens in the sentence 'I am a cat'\n", len(tokens))
@@ -31,11 +33,13 @@ func TestTokeniseSentence(t *testing.T) {
 }
 
 func TestTokenise(t *testing.T) {
+	e := NewEnglishTokeniser()
+
 	sentence := "In a hole in the ground there lived a hobbit. Not a nasty, dirty, wet hole, filled with the ends of worms and an oozy smell, nor yet a dry, bare, sandy hole with nothing in it to sit down on or to eat: it was a hobbit-hole, and that means comfort."
 
 	correctTokens := []string{"In", "a", "hole", "in", "the", "ground", "there", "lived", "a", "hobbit", "Not", "a", "nasty", "dirty", "wet", "hole", "filled", "with", "the", "ends", "of", "worms", "and", "an", "oozy", "smell", "nor", "yet", "a", "dry", "bare", "sandy", "hole", "with", "nothing", "in", "it", "to", "sit", "down", "on", "or", "to", "eat", "it", "was", "a", "hobbit-hole", "and", "that", "means", "comfort"}
 
-	tokens := Tokenise(sentence)
+	tokens := e.Tokenise(sentence)
 
 	for i, token := range tokens {
 		if token != correctTokens[i] {
@@ -44,7 +48,7 @@ func TestTokenise(t *testing.T) {
 	}
 
 	sentence = "Could've. Would've! Should've?"
-	tokens = Tokenise(sentence)
+	tokens = e.Tokenise(sentence)
 
 	correctTokens = []string{"Could", "'ve", "Would", "'ve", "Should", "'ve"}
 
@@ -56,8 +60,10 @@ func TestTokenise(t *testing.T) {
 }
 
 func TestNormalise(t *testing.T) {
-	tokens := Tokenise("I'm many cats.")
-	normalisedTokens := Normalise(tokens)
+	e := NewEnglishTokeniser()
+
+	tokens := e.Tokenise("I'm many cats.")
+	normalisedTokens := e.NormaliseMany(tokens)
 
 	correctNormalisedTokens := []string{"i", "'m", "mani", "cat"}
 
@@ -67,8 +73,8 @@ func TestNormalise(t *testing.T) {
 		}
 	}
 
-	tokens = Tokenise("My dogs are actually one dog!")
-	normalisedTokens = Normalise(tokens)
+	tokens = e.Tokenise("My dogs are actually one dog!")
+	normalisedTokens = e.NormaliseMany(tokens)
 
 	correctNormalisedTokens = []string{"my", "dog", "are", "actual", "one", "dog"}
 
@@ -78,8 +84,8 @@ func TestNormalise(t *testing.T) {
 		}
 	}
 
-	tokens = Tokenise("If I'm dying you all die with me")
-	normalisedTokens = Normalise(tokens)
+	tokens = e.Tokenise("If I'm dying you all die with me")
+	normalisedTokens = e.NormaliseMany(tokens)
 
 	correctNormalisedTokens = []string{"if", "i", "'m", "die", "you", "all", "die", "with", "me"}
 

@@ -32,7 +32,7 @@ type TotalIndex struct {
 }
 
 type DocumentInfo struct {
-	Name   string
-	Class  string
-	Length uint32
+	Name    string
+	Classes []string
+	Length  uint32
 }
