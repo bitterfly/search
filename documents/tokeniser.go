@@ -26,27 +26,26 @@ func notPunctuation(word string) bool {
 	return true
 }
 
-func tokeniseSentence(sentence string) [][]byte {
+func tokeniseSentence(sentence string) []string {
 	tokeniser := tokenize.NewTreebankWordTokenizer()
 
-	tokens := make([][]byte, 0)
+	tokens := make([]string, 0)
 	for _, word := range tokeniser.Tokenize(sentence) {
 		if notPunctuation(word) {
-			tokens = append(tokens, []byte(word))
+			tokens = append(tokens, word)
 		}
 	}
 
 	return tokens
 }
 
-func Tokenise(text string) [][]byte {
+func Tokenise(text string) []string {
 	sentenceSplitter, _ := tokenize.NewPragmaticSegmenter("en")
 	sentences := sentenceSplitter.Tokenize(text)
 
-	tokens := make([][]byte, 0)
+	tokens := make([]string, 0)
 
 	for _, sentence := range sentences {
-
 		tokens = append(tokens, tokeniseSentence(sentence)...)
 	}
 
