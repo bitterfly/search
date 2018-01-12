@@ -4,9 +4,12 @@ import (
 	"testing"
 
 	"github.com/elgs/gostrgen"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTraverse_ABCD(t *testing.T) {
+	assert := assert.New(t)
+
 	trie := &Trie{
 		maxIndex: 3,
 		transitions: map[Transition]int32{
@@ -29,12 +32,12 @@ func TestTraverse_ABCD(t *testing.T) {
 		t.Errorf("Result from traversing with 'abcd' when 'abc' is in trie is %s, but has to be 'd'\n", string(rest))
 	}
 
-	if destination != int32(3) {
-		t.Errorf("Destination is %d but it has to be 3\n", destination)
-	}
+	assert.Equal(destination, int32(3))
 }
 
 func TestTraverse_ABC(t *testing.T) {
+	assert := assert.New(t)
+
 	trie := &Trie{
 		maxIndex: 3,
 		transitions: map[Transition]int32{
@@ -53,12 +56,12 @@ func TestTraverse_ABC(t *testing.T) {
 		t.Errorf("Result from traversing with 'abc' when 'abc' is in trie is not null: %s\n", string(rest))
 	}
 
-	if destination != int32(3) {
-		t.Errorf("Destination is %d but it has to be 3\n", destination)
-	}
+	assert.Equal(destination, int32(3))
 }
 
 func TestGet_ABC(t *testing.T) {
+	assert := assert.New(t)
+
 	trie := &Trie{
 		maxIndex: 3,
 		transitions: map[Transition]int32{
@@ -71,46 +74,27 @@ func TestGet_ABC(t *testing.T) {
 		},
 	}
 
-	value := trie.Get([]byte("abc"))
-
-	if *value != uint64(42) {
-		t.Errorf("Should get value=42 when traversing with word in the trie, but got %d instead\n", *value)
-	}
+	assert.Equal(*trie.Get([]byte("abc")), uint64(42))
 }
 
 func TestTrie_Put_and_Get(t *testing.T) {
+	assert := assert.New(t)
 	trie := New()
 
 	trie.Put([]byte("foo"), 42)
 	trie.Put([]byte("fob"), 43)
 	trie.Put([]byte("bar"), 44)
 
-	if *trie.Get([]byte("foo")) != 42 {
-		t.Errorf("cannot get foo")
-	}
-
-	if *trie.Get([]byte("fob")) != 43 {
-		t.Errorf("cannot get fob")
-	}
-
-	if *trie.Get([]byte("bar")) != 44 {
-		t.Errorf("cannot get bar")
-	}
-
-	if trie.GetOrPut([]byte("qux"), 5) != 5 {
-		t.Errorf("cannot put or get qux when it's not present")
-	}
-
-	if *trie.Get([]byte("qux")) != 5 {
-		t.Errorf("cannot get qux")
-	}
-
-	if trie.GetOrPut([]byte("qux"), 1) != 5 {
-		t.Errorf("cannot put or get qux when it is present")
-	}
+	assert.Equal(*trie.Get([]byte("foo")), uint64(42))
+	assert.Equal(*trie.Get([]byte("fob")), uint64(43))
+	assert.Equal(*trie.Get([]byte("bar")), uint64(44))
+	assert.Equal(trie.GetOrPut([]byte("qux"), 5), uint64(5))
+	assert.Equal(*trie.Get([]byte("qux")), uint64(5))
+	assert.Equal(trie.GetOrPut([]byte("qux"), 1), uint64(5))
 }
 
 func TestTrie_PutLambda(t *testing.T) {
+	assert := assert.New(t)
 	trie := New()
 
 	trie.Put([]byte("foo"), 42)
@@ -118,10 +102,28 @@ func TestTrie_PutLambda(t *testing.T) {
 	trie.Put([]byte("bar"), 44)
 
 	trie.PutLambda([]byte("fob"), func(x uint64) uint64 { return x + 10 }, 0)
-	y := *trie.Get([]byte("fob"))
-	if y != 53 {
-		t.Errorf("cannot put with lambda: got %d instead of 53", y)
-	}
+	assert.Equal(*trie.Get([]byte("fob")), uint64(53))
+}
+
+func TestTrie_Walk(t *testing.T) {
+	assert := assert.New(t)
+
+	trie := New()
+
+	trie.Put([]byte("foo"), 42)
+	trie.Put([]byte("fob"), 43)
+	trie.Put([]byte("bar"), 44)
+
+	var words []string
+	var values []uint64
+
+	trie.Walk(func(word []byte, value uint64) {
+		words = append(words, string(word))
+		values = append(values, value)
+	})
+
+	assert.Equal(words, []string{"bar", "fob", "foo"})
+	assert.Equal(values, []uint64{44, 43, 42})
 }
 
 func makeBenchmarkWords(size int) [][]byte {

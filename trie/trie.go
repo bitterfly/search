@@ -79,3 +79,7 @@ func (t *Trie) PutLambda(word []byte, lambda func(uint64) uint64, defaultValue u
 		t.Put(word, defaultValue)
 	}
 }
+
+func (t *Trie) Walk(operation func([]byte, uint64)) {
+
+}
