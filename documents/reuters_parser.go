@@ -3,14 +3,41 @@ package documents
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
+	"sync"
 
 	"github.com/DexterLB/htmlparsing"
 	"github.com/jbowtie/gokogiri"
 	"github.com/jbowtie/gokogiri/xml"
 )
 
-func ParseFile(filename string) ([]Document, error) {
+func ParseFilesParallel(filenames <-chan string, documents chan<- *Document, workers int) {
+	wg := &sync.WaitGroup{}
+	wg.Add(workers)
+	for i := 0; i < workers; i++ {
+		go func() {
+			ParseFiles(filenames, documents)
+			wg.Done()
+		}()
+	}
+}
+
+func ParseFiles(filenames <-chan string, documents chan<- *Document) {
+	for f := range filenames {
+		documentsInFile, err := ParseFile(f)
+		if err != nil {
+			log.Printf("Unable to parse file %s: %s", f, err)
+			// too lazy for proper error handling
+		}
+
+		for _, doc := range documentsInFile {
+			documents <- doc
+		}
+	}
+}
+
+func ParseFile(filename string) ([]*Document, error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open file: %s", err)
@@ -24,7 +51,7 @@ func ParseFile(filename string) ([]Document, error) {
 	return Parse(data)
 }
 
-func Parse(data []byte) ([]Document, error) {
+func Parse(data []byte) ([]*Document, error) {
 	xml, err := gokogiri.ParseXml(data)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse file: %s", err)
@@ -35,12 +62,17 @@ func Parse(data []byte) ([]Document, error) {
 		return nil, fmt.Errorf("Unable to find documents in file: %s", err)
 	}
 
-	documents := make([]Document, len(docnodes))
+	var documents []*Document
+
 	for i := range docnodes {
-		err = parseDocument(docnodes[i], &documents[i])
+		doc := Document{}
+		err = parseDocument(docnodes[i], &doc)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse document: %s", err)
+			// return nil, fmt.Errorf("Unable to parse document: %s", err)
+			log.Printf("Unable to parse document: %s", err)
+			continue
 		}
+		documents = append(documents, doc)
 	}
 
 	return documents, nil
@@ -48,11 +80,10 @@ func Parse(data []byte) ([]Document, error) {
 
 func parseDocument(node xml.Node, document *Document) error {
 	titleNode, err := htmlparsing.First(node, ".//TITLE")
-	if err != nil {
-		return fmt.Errorf("Unable to parse document title: %s", err)
+	if err == nil {
+		// don't care if there's no title
+		document.Title = titleNode.Content()
 	}
-
-	document.Title = titleNode.Content()
 
 	bodyNode, err := htmlparsing.First(node, ".//BODY")
 	if err != nil {
@@ -62,13 +93,11 @@ func parseDocument(node xml.Node, document *Document) error {
 	document.Body = bodyNode.Content()
 
 	dateNode, err := htmlparsing.First(node, ".//DATE")
-	if err != nil {
-		return fmt.Errorf("Unable to parse document date: %s", err)
+	if err == nil {
+		document.Date = dateNode.Content()
 	}
 
-	document.Date = dateNode.Content()
-
-	topicNodes, err := node.Search(".//TOPICS/d")
+	topicNodes, err := node.Search(".//TOPICS/D")
 	if err != nil {
 		return fmt.Errorf("Unable to parse document topics: %s", err)
 	}
