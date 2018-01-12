@@ -122,8 +122,8 @@ func TestTrie_Walk(t *testing.T) {
 		values = append(values, value)
 	})
 
-	assert.Equal(words, []string{"bar", "fob", "foo"})
-	assert.Equal(values, []uint64{44, 43, 42})
+	assert.ElementsMatch(words, []string{"bar", "fob", "foo"})
+	assert.ElementsMatch(values, []uint64{44, 43, 42})
 }
 
 func makeBenchmarkWords(size int) [][]byte {
