@@ -26,7 +26,7 @@ func GetXMLs(folder string, into chan<- string) {
 func main() {
 	files := make(chan string, 200)
 	docs := make(chan *documents.Document, 2000)
-	countDocs := make(chan *indices.Document, 2000)
+	countDocs := make(chan *indices.InfoAndTerms, 2000)
 
 	tokeniser, err := processing.NewEnglishTokeniserFromFile(
 		filepath.Join(os.Args[1], "stopwords"),

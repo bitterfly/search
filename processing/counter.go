@@ -5,19 +5,19 @@ import (
 	"github.com/DexterLB/search/indices"
 )
 
-func CountInDocuments(docs <-chan *documents.Document, tokeniser Tokeniser, idocs chan<- *indices.Document) {
+func CountInDocuments(docs <-chan *documents.Document, tokeniser Tokeniser, idocs chan<- *indices.InfoAndTerms) {
 	for doc := range docs {
 		idocs <- Count(doc, tokeniser)
 	}
 }
 
-func Count(doc *documents.Document, tokeniser Tokeniser) *indices.Document {
-	idoc := indices.NewDocument()
+func Count(doc *documents.Document, tokeniser Tokeniser) *indices.InfoAndTerms {
+	idoc := indices.NewInfoAndTerms()
 	idoc.Name = doc.Title
 	idoc.Classes = doc.Classes
 
 	tokeniser.GetTerms(doc.Body, func(term string) {
-		idoc.TermCounts.PutLambda(
+		idoc.TermsAndCounts.PutLambda(
 			[]byte(term),
 			func(x uint64) uint64 { return x + 1 },
 			1,
