@@ -44,8 +44,6 @@ func (e *EnglishTokeniser) notPunctuation(word string) bool {
 		return false
 	}
 
-	word = strings.TrimLeftFunc(word, func(r rune) bool { return r == '\'' })
-
 	for _, symbol := range word {
 		if symbol == '-' {
 			continue
@@ -58,27 +56,19 @@ func (e *EnglishTokeniser) notPunctuation(word string) bool {
 	return true
 }
 
-func (e *EnglishTokeniser) tokeniseSentence(sentence string) []string {
-	tokeniser := tokenize.NewTreebankWordTokenizer()
-
-	tokens := make([]string, 0)
-	for _, word := range tokeniser.Tokenize(sentence) {
-		if e.notPunctuation(word) {
-			tokens = append(tokens, word)
-		}
-	}
-
-	return tokens
-}
-
 func (e *EnglishTokeniser) Tokenise(text string) []string {
 	sentenceSplitter, _ := tokenize.NewThreadSafePragmaticSegmenter("en")
 	sentences := sentenceSplitter.Tokenize(text)
 
 	tokens := make([]string, 0)
+	tokeniser := tokenize.NewTreebankWordTokenizer()
 
 	for _, sentence := range sentences {
-		tokens = append(tokens, e.tokeniseSentence(sentence)...)
+		for _, word := range tokeniser.Tokenize(sentence) {
+			if e.notPunctuation(word) {
+				tokens = append(tokens, word)
+			}
+		}
 	}
 
 	return tokens
