@@ -6,7 +6,7 @@ type Posting struct {
 	Index uint32
 	Count uint32
 
-	NextPostingIndex uint32
+	NextPostingIndex int32
 }
 
 type PostingList struct {
@@ -30,4 +30,10 @@ type DocumentInfo struct {
 	Name    string
 	Classes []string
 	Length  uint32
+}
+
+func NewTotalIndex() *TotalIndex {
+	return &TotalIndex{
+		Dictionary: *trie.NewDictionary(),
+	}
 }
