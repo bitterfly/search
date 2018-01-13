@@ -31,7 +31,7 @@ func (e *EnglishTokeniser) stem(word string) string {
 	if err == nil {
 		return stemmed
 	} else {
-		return lower
+		return word
 	}
 }
 
@@ -43,7 +43,7 @@ func NewEnglishTokeniser(stopWordList io.Reader) (*EnglishTokeniser, error) {
 	scanner := bufio.NewScanner(stopWordList)
 	for scanner.Scan() {
 		tok.stopWords.Put([]byte(scanner.Text()), 1)
-		tok.stopWords.Put(tok.stem(scanner.Text()), 1)
+		tok.stopWords.Put([]byte(tok.stem(scanner.Text())), 1)
 	}
 
 	return tok, scanner.Err()

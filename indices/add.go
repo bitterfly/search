@@ -7,20 +7,20 @@ import (
 	"github.com/DexterLB/search/trie"
 )
 
-type Document struct {
+type InfoAndTerms struct {
 	DocumentInfo
 
-	TermCounts trie.Trie
+	TermsAndCounts trie.Trie
 }
 
-func NewDocument() *Document {
-	return &Document{
-		DocumentInfo: DocumentInfo{},
-		TermCounts:   *trie.New(),
+func NewInfoAndTerms() *InfoAndTerms {
+	return &InfoAndTerms{
+		DocumentInfo:   DocumentInfo{},
+		TermsAndCounts: *trie.New(),
 	}
 }
 
-func (d *Document) Print() {
+func (d *InfoAndTerms) Print() {
 	fmt.Printf("************\n")
 	fmt.Printf(
 		"name: %s, classes: %s, length: %d\nterms:\n",
@@ -28,11 +28,11 @@ func (d *Document) Print() {
 		strings.Join(d.Classes, ", "),
 		d.Length,
 	)
-	d.TermCounts.Walk(func(term []byte, count uint64) {
+	d.TermsAndCounts.Walk(func(term []byte, count uint64) {
 		fmt.Printf("  %s: %d\n", string(term), count)
 	})
 }
 
-func (t *TotalIndex) Add(d *Document) {
+func (t *TotalIndex) Add(d *InfoAndTerms) {
 
 }

@@ -2,31 +2,31 @@ package indices
 
 import "github.com/DexterLB/search/trie"
 
-type PostingData struct {
+type Posting struct {
 	Document uint32
 	Term     uint32
-	Times    uint32
+	Count    uint32
 }
 
-type Posting struct {
-	Data int32
-	Next int32
+type PostingListItem struct {
+	PostingIndex int32
+	NextIndex    int32
 }
 
 type PostingList struct {
-	First int32
-	Last  int32
+	FirstIndex int32
+	LastIndex  int32
 }
 
 type Index struct {
-	PostingLists []PostingList
-	Postings     []Posting
+	PostingLists     []PostingList
+	PostingListItems []PostingListItem
 }
 
 type TotalIndex struct {
 	Forward    Index
 	Inverse    Index
-	Data       []PostingData
+	Data       []Posting
 	Documents  []DocumentInfo
 	Dictionary trie.Dictionary
 }
