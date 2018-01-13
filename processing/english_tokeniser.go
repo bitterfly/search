@@ -26,6 +26,15 @@ func NewEnglishTokeniserFromFile(stopWordFile string) (*EnglishTokeniser, error)
 	return NewEnglishTokeniser(f)
 }
 
+func (e *EnglishTokeniser) stem(word string) string {
+	stemmed, err := snowball.Stem(word, "english", true)
+	if err == nil {
+		return stemmed
+	} else {
+		return lower
+	}
+}
+
 func NewEnglishTokeniser(stopWordList io.Reader) (*EnglishTokeniser, error) {
 	tok := &EnglishTokeniser{
 		stopWords: *trie.New(),
@@ -34,6 +43,7 @@ func NewEnglishTokeniser(stopWordList io.Reader) (*EnglishTokeniser, error) {
 	scanner := bufio.NewScanner(stopWordList)
 	for scanner.Scan() {
 		tok.stopWords.Put([]byte(scanner.Text()), 1)
+		tok.stopWords.Put(tok.stem(scanner.Text()), 1)
 	}
 
 	return tok, scanner.Err()
@@ -75,13 +85,7 @@ func (e *EnglishTokeniser) Tokenise(text string) []string {
 }
 
 func (e *EnglishTokeniser) Normalise(token string) string {
-	lower := strings.ToLower(token)
-	stemmed, err := snowball.Stem(lower, "english", true)
-	if err == nil {
-		return stemmed
-	} else {
-		return lower
-	}
+	return e.stem(strings.ToLower(token))
 }
 
 func (e *EnglishTokeniser) NormaliseMany(tokens []string) []string {
@@ -100,9 +104,6 @@ func (e *EnglishTokeniser) IsStopWord(word string) bool {
 func (e *EnglishTokeniser) GetTerms(text string, operation func(string)) {
 	terms := e.Tokenise(text)
 	for i := range terms {
-		if e.IsStopWord(terms[i]) {
-			continue
-		}
 		terms[i] = e.Normalise(terms[i])
 		if e.IsStopWord(terms[i]) {
 			continue // maybe don't need the second check?
