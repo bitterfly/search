@@ -39,6 +39,12 @@ func (d *InfoAndTerms) Print() {
 	})
 }
 
+func (t *TotalIndex) AddMany(infosAndTerms <-chan *InfoAndTerms) {
+	for it := range infosAndTerms {
+		t.Add(it)
+	}
+}
+
 func (t *TotalIndex) Add(d *InfoAndTerms) {
 	var sortedTermsAndCounts []TermAndCount
 

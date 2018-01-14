@@ -1,6 +1,13 @@
 package indices
 
-import "github.com/DexterLB/search/trie"
+import (
+	"encoding/gob"
+	"fmt"
+	"io"
+	"os"
+
+	"github.com/DexterLB/search/trie"
+)
 
 type Posting struct {
 	Index int32
@@ -36,4 +43,30 @@ func NewTotalIndex() *TotalIndex {
 	return &TotalIndex{
 		Dictionary: *trie.NewDictionary(),
 	}
+}
+
+func (t *TotalIndex) SerialiseTo(w io.Writer) error {
+	encoder := gob.NewEncoder(w)
+	return encoder.Encode(t)
+}
+
+func (t *TotalIndex) SerialiseToFile(filename string) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return fmt.Errorf("unable to open file: %s", err)
+	}
+	return t.SerialiseTo(f)
+}
+
+func (t *TotalIndex) DeserialiseFrom(r io.Reader) error {
+	decoder := gob.NewDecoder(r)
+	return decoder.Decode(t)
+}
+
+func (t *TotalIndex) DeserialiseFromFile(filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return fmt.Errorf("unable to open file: %s", err)
+	}
+	return t.DeserialiseFrom(f)
 }

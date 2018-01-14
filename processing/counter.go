@@ -19,7 +19,7 @@ func Count(doc *documents.Document, tokeniser Tokeniser) *indices.InfoAndTerms {
 	tokeniser.GetTerms(doc.Body, func(term string) {
 		idoc.TermsAndCounts.PutLambda(
 			[]byte(term),
-			func(x uint64) uint64 { return x + 1 },
+			func(x int32) int32 { return x + 1 },
 			1,
 		)
 	})

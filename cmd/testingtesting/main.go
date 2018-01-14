@@ -26,7 +26,7 @@ func GetXMLs(folder string, into chan<- string) {
 func main() {
 	files := make(chan string, 200)
 	docs := make(chan *documents.Document, 2000)
-	countDocs := make(chan *indices.InfoAndTerms, 2000)
+	infosAndTerms := make(chan *indices.InfoAndTerms, 2000)
 
 	tokeniser, err := processing.NewEnglishTokeniserFromFile(
 		filepath.Join(os.Args[1], "stopwords"),
@@ -49,13 +49,16 @@ func main() {
 
 	go func() {
 		utils.Parallel(func() {
-			processing.CountInDocuments(docs, tokeniser, countDocs)
+			processing.CountInDocuments(docs, tokeniser, infosAndTerms)
 		}, runtime.NumCPU())
-		close(countDocs)
+		close(infosAndTerms)
 	}()
 
-	for countDoc := range countDocs {
-		countDoc.Print()
-	}
+	index := indices.NewTotalIndex()
+	index.AddMany(infosAndTerms)
 
+	err = index.SerialiseToFile(os.Args[2])
+	if err != nil {
+		log.Fatalf("Unable to serialise index: %s", err)
+	}
 }
