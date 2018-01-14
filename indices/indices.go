@@ -51,7 +51,7 @@ func (t *TotalIndex) SerialiseTo(w io.Writer) error {
 }
 
 func (t *TotalIndex) SerialiseToFile(filename string) error {
-	f, err := os.Open(filename)
+	f, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("unable to open file: %s", err)
 	}
@@ -64,7 +64,7 @@ func (t *TotalIndex) DeserialiseFrom(r io.Reader) error {
 }
 
 func (t *TotalIndex) DeserialiseFromFile(filename string) error {
-	f, err := os.Create(filename)
+	f, err := os.Open(filename)
 	if err != nil {
 		return fmt.Errorf("unable to open file: %s", err)
 	}
