@@ -2,6 +2,7 @@ package indices
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/DexterLB/search/trie"
@@ -20,6 +21,11 @@ func NewInfoAndTerms() *InfoAndTerms {
 	}
 }
 
+type TermAndCount struct {
+	TermID uint32
+	Count  uint32
+}
+
 func (d *InfoAndTerms) Print() {
 	fmt.Printf("************\n")
 	fmt.Printf(
@@ -34,5 +40,23 @@ func (d *InfoAndTerms) Print() {
 }
 
 func (t *TotalIndex) Add(d *InfoAndTerms) {
+	var sortedTermsAndCounts []TermAndCount
+
+	d.TermsAndCounts.Walk(func(term []byte, count uint64) {
+		sortedTermsAndCounts = append(
+			sortedTermsAndCounts,
+			TermAndCount{
+				TermID: uint32(t.Dictionary.Get(term)),
+				Count:  uint32(count),
+			},
+		)
+	})
+
+	sort.Slice(
+		sortedTermsAndCounts,
+		func(i, j int) bool {
+			return sortedTermsAndCounts[i].TermID < sortedTermsAndCounts[j].TermID
+		},
+	)
 
 }
