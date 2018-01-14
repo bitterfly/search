@@ -1,25 +1,25 @@
 package trie
 
 type Transition struct {
-	id    int32
-	label byte
+	Id    int32
+	Label byte
 }
 
 // Trie maps words to integer IDs
 // root always starts from zero
 type Trie struct {
-	maxIndex    int32
-	transitions map[Transition]int32
-	children    map[int32][]Transition
-	values      map[int32]int32
+	MaxIndex    int32
+	Transitions map[Transition]int32
+	Children    map[int32][]Transition
+	Values      map[int32]int32
 }
 
 func New() *Trie {
 	return &Trie{
-		maxIndex:    0,
-		transitions: make(map[Transition]int32),
-		children:    make(map[int32][]Transition),
-		values:      make(map[int32]int32),
+		MaxIndex:    0,
+		Transitions: make(map[Transition]int32),
+		Children:    make(map[int32][]Transition),
+		Values:      make(map[int32]int32),
 	}
 }
 
@@ -28,7 +28,7 @@ func (t *Trie) traverseWith(word []byte) (int32, []byte) {
 	var destination int32
 	var ok bool
 	for i, letter := range word {
-		destination, ok = t.transitions[Transition{id: node, label: letter}]
+		destination, ok = t.Transitions[Transition{Id: node, Label: letter}]
 		if ok {
 			node = destination
 		} else {
@@ -42,21 +42,21 @@ func (t *Trie) Put(word []byte, value int32) int32 {
 	node, rest := t.traverseWith(word)
 	if rest != nil {
 		for _, letter := range rest {
-			t.maxIndex += 1
-			t.transitions[Transition{id: node, label: letter}] = t.maxIndex
-			t.children[node] = append(t.children[node], Transition{id: t.maxIndex, label: letter})
-			node = t.maxIndex
+			t.MaxIndex += 1
+			t.Transitions[Transition{Id: node, Label: letter}] = t.MaxIndex
+			t.Children[node] = append(t.Children[node], Transition{Id: t.MaxIndex, Label: letter})
+			node = t.MaxIndex
 		}
 	}
 
-	t.values[node] = value
+	t.Values[node] = value
 	return value
 }
 
 func (t *Trie) Get(word []byte) *int32 {
 	destination, rest := t.traverseWith(word)
 	if rest == nil {
-		value, _ := t.values[destination]
+		value, _ := t.Values[destination]
 		return &value
 	}
 
@@ -84,16 +84,16 @@ func (t *Trie) PutLambda(word []byte, lambda func(int32) int32, defaultValue int
 }
 
 func (t *Trie) walk(node int32, word *[]byte, operation func([]byte, int32)) {
-	value, ok := t.values[node]
+	value, ok := t.Values[node]
 
 	//If final apply operation
 	if ok {
 		operation(*word, value)
 	}
 
-	for _, transition := range t.children[node] {
-		*word = append(*word, transition.label)
-		t.walk(transition.id, word, operation)
+	for _, transition := range t.Children[node] {
+		*word = append(*word, transition.Label)
+		t.walk(transition.Id, word, operation)
 		*word = (*word)[:len(*word)-1]
 	}
 

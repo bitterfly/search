@@ -11,13 +11,13 @@ func TestTraverse_ABCD(t *testing.T) {
 	assert := assert.New(t)
 
 	trie := &Trie{
-		maxIndex: 3,
-		transitions: map[Transition]int32{
-			Transition{id: 0, label: byte('a')}: 1,
-			Transition{id: 1, label: byte('b')}: 2,
-			Transition{id: 2, label: byte('c')}: 3,
+		MaxIndex: 3,
+		Transitions: map[Transition]int32{
+			Transition{Id: 0, Label: byte('a')}: 1,
+			Transition{Id: 1, Label: byte('b')}: 2,
+			Transition{Id: 2, Label: byte('c')}: 3,
 		},
-		values: map[int32]int32{
+		Values: map[int32]int32{
 			3: int32(42),
 		},
 	}
@@ -39,13 +39,13 @@ func TestTraverse_ABC(t *testing.T) {
 	assert := assert.New(t)
 
 	trie := &Trie{
-		maxIndex: 3,
-		transitions: map[Transition]int32{
-			Transition{id: 0, label: byte('a')}: 1,
-			Transition{id: 1, label: byte('b')}: 2,
-			Transition{id: 2, label: byte('c')}: 3,
+		MaxIndex: 3,
+		Transitions: map[Transition]int32{
+			Transition{Id: 0, Label: byte('a')}: 1,
+			Transition{Id: 1, Label: byte('b')}: 2,
+			Transition{Id: 2, Label: byte('c')}: 3,
 		},
-		values: map[int32]int32{
+		Values: map[int32]int32{
 			3: int32(42),
 		},
 	}
@@ -63,13 +63,13 @@ func TestGet_ABC(t *testing.T) {
 	assert := assert.New(t)
 
 	trie := &Trie{
-		maxIndex: 3,
-		transitions: map[Transition]int32{
-			Transition{id: 0, label: byte('a')}: 1,
-			Transition{id: 1, label: byte('b')}: 2,
-			Transition{id: 2, label: byte('c')}: 3,
+		MaxIndex: 3,
+		Transitions: map[Transition]int32{
+			Transition{Id: 0, Label: byte('a')}: 1,
+			Transition{Id: 1, Label: byte('b')}: 2,
+			Transition{Id: 2, Label: byte('c')}: 3,
 		},
-		values: map[int32]int32{
+		Values: map[int32]int32{
 			3: int32(42),
 		},
 	}

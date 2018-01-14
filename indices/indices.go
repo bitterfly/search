@@ -1,6 +1,7 @@
 package indices
 
 import (
+	"compress/gzip"
 	"encoding/gob"
 	"fmt"
 	"io"
@@ -46,8 +47,13 @@ func NewTotalIndex() *TotalIndex {
 }
 
 func (t *TotalIndex) SerialiseTo(w io.Writer) error {
-	encoder := gob.NewEncoder(w)
-	return encoder.Encode(t)
+	gzWriter := gzip.NewWriter(w)
+	encoder := gob.NewEncoder(gzWriter)
+	err := encoder.Encode(t)
+	if err != nil {
+		return err
+	}
+	return gzWriter.Close()
 }
 
 func (t *TotalIndex) SerialiseToFile(filename string) error {
@@ -59,8 +65,18 @@ func (t *TotalIndex) SerialiseToFile(filename string) error {
 }
 
 func (t *TotalIndex) DeserialiseFrom(r io.Reader) error {
-	decoder := gob.NewDecoder(r)
-	return decoder.Decode(t)
+	gzReader, err := gzip.NewReader(r)
+	if err != nil {
+		return err
+	}
+
+	decoder := gob.NewDecoder(gzReader)
+	err = decoder.Decode(t)
+	if err != nil {
+		return err
+	}
+
+	return gzReader.Close()
 }
 
 func (t *TotalIndex) DeserialiseFromFile(filename string) error {

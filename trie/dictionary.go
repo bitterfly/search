@@ -1,21 +1,21 @@
 package trie
 
 type Dictionary struct {
-	trie       Trie
-	lastTermID int32
+	Trie       Trie
+	LastTermID int32
 }
 
 func NewDictionary() *Dictionary {
 	return &Dictionary{
-		trie:       *New(),
-		lastTermID: 0,
+		Trie:       *New(),
+		LastTermID: 0,
 	}
 }
 
 func (d *Dictionary) Get(word []byte) int32 {
-	id := d.trie.GetOrPut(word, d.lastTermID)
-	if id == d.lastTermID {
-		d.lastTermID += 1
+	id := d.Trie.GetOrPut(word, d.LastTermID)
+	if id == d.LastTermID {
+		d.LastTermID += 1
 	}
 
 	return id
