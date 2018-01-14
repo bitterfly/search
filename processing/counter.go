@@ -5,9 +5,20 @@ import (
 	"github.com/DexterLB/search/indices"
 )
 
-func CountInDocuments(docs <-chan *documents.Document, tokeniser Tokeniser, idocs chan<- *indices.InfoAndTerms) {
+func CountInDocuments(
+	docs <-chan *documents.Document,
+	tokeniser Tokeniser,
+	idocs chan<- *indices.InfoAndTerms,
+	includeClassless bool,
+	includeClassy bool,
+) {
 	for doc := range docs {
-		idocs <- Count(doc, tokeniser)
+		if len(doc.Classes) >= 1 && includeClassy {
+			idocs <- Count(doc, tokeniser)
+		}
+		if len(doc.Classes) == 0 && includeClassless {
+			idocs <- Count(doc, tokeniser)
+		}
 	}
 }
 
