@@ -17,8 +17,8 @@ func TestTraverse_ABCD(t *testing.T) {
 			Transition{id: 1, label: byte('b')}: 2,
 			Transition{id: 2, label: byte('c')}: 3,
 		},
-		values: map[int32]uint64{
-			3: uint64(42),
+		values: map[int32]int32{
+			3: int32(42),
 		},
 	}
 
@@ -45,8 +45,8 @@ func TestTraverse_ABC(t *testing.T) {
 			Transition{id: 1, label: byte('b')}: 2,
 			Transition{id: 2, label: byte('c')}: 3,
 		},
-		values: map[int32]uint64{
-			3: uint64(42),
+		values: map[int32]int32{
+			3: int32(42),
 		},
 	}
 
@@ -69,12 +69,12 @@ func TestGet_ABC(t *testing.T) {
 			Transition{id: 1, label: byte('b')}: 2,
 			Transition{id: 2, label: byte('c')}: 3,
 		},
-		values: map[int32]uint64{
-			3: uint64(42),
+		values: map[int32]int32{
+			3: int32(42),
 		},
 	}
 
-	assert.Equal(*trie.Get([]byte("abc")), uint64(42))
+	assert.Equal(*trie.Get([]byte("abc")), int32(42))
 }
 
 func TestTrie_Put_and_Get(t *testing.T) {
@@ -85,12 +85,12 @@ func TestTrie_Put_and_Get(t *testing.T) {
 	trie.Put([]byte("fob"), 43)
 	trie.Put([]byte("bar"), 44)
 
-	assert.Equal(*trie.Get([]byte("foo")), uint64(42))
-	assert.Equal(*trie.Get([]byte("fob")), uint64(43))
-	assert.Equal(*trie.Get([]byte("bar")), uint64(44))
-	assert.Equal(trie.GetOrPut([]byte("qux"), 5), uint64(5))
-	assert.Equal(*trie.Get([]byte("qux")), uint64(5))
-	assert.Equal(trie.GetOrPut([]byte("qux"), 1), uint64(5))
+	assert.Equal(*trie.Get([]byte("foo")), int32(42))
+	assert.Equal(*trie.Get([]byte("fob")), int32(43))
+	assert.Equal(*trie.Get([]byte("bar")), int32(44))
+	assert.Equal(trie.GetOrPut([]byte("qux"), 5), int32(5))
+	assert.Equal(*trie.Get([]byte("qux")), int32(5))
+	assert.Equal(trie.GetOrPut([]byte("qux"), 1), int32(5))
 }
 
 func TestTrie_PutLambda(t *testing.T) {
@@ -101,8 +101,8 @@ func TestTrie_PutLambda(t *testing.T) {
 	trie.Put([]byte("fob"), 43)
 	trie.Put([]byte("bar"), 44)
 
-	trie.PutLambda([]byte("fob"), func(x uint64) uint64 { return x + 10 }, 0)
-	assert.Equal(*trie.Get([]byte("fob")), uint64(53))
+	trie.PutLambda([]byte("fob"), func(x int32) int32 { return x + 10 }, 0)
+	assert.Equal(*trie.Get([]byte("fob")), int32(53))
 }
 
 func TestTrie_Walk(t *testing.T) {
@@ -116,15 +116,15 @@ func TestTrie_Walk(t *testing.T) {
 	trie.Put([]byte("bar"), 44)
 
 	var words []string
-	var values []uint64
+	var values []int32
 
-	trie.Walk(func(word []byte, value uint64) {
+	trie.Walk(func(word []byte, value int32) {
 		words = append(words, string(word))
 		values = append(values, value)
 	})
 
 	assert.ElementsMatch(words, []string{"bar", "fo", "fob", "foo"})
-	assert.ElementsMatch(values, []uint64{44, 41, 43, 42})
+	assert.ElementsMatch(values, []int32{44, 41, 43, 42})
 }
 
 func makeBenchmarkWords(size int) [][]byte {
@@ -150,7 +150,7 @@ func benchmarkPut(numWords int, b *testing.B) {
 	b.ReportAllocs()
 
 	for j := 0; j < b.N; j++ {
-		for i := uint64(0); i < uint64(numWords); i++ {
+		for i := int32(0); i < int32(numWords); i++ {
 			trie.Put(words[i], i)
 		}
 	}
@@ -161,7 +161,7 @@ func benchmarkGet(numWords int, b *testing.B) {
 
 	trie := New()
 
-	for i := uint64(0); i < uint64(numWords); i++ {
+	for i := int32(0); i < int32(numWords); i++ {
 		trie.Put(words[i], i)
 	}
 
@@ -169,7 +169,7 @@ func benchmarkGet(numWords int, b *testing.B) {
 	b.ReportAllocs()
 
 	for j := 0; j < b.N; j++ {
-		for i := uint64(0); i < uint64(numWords); i++ {
+		for i := int32(0); i < int32(numWords); i++ {
 			trie.Get(words[i])
 		}
 	}

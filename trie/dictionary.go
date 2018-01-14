@@ -2,7 +2,7 @@ package trie
 
 type Dictionary struct {
 	trie       Trie
-	lastTermID uint64
+	lastTermID int32
 }
 
 func NewDictionary() *Dictionary {
@@ -12,10 +12,10 @@ func NewDictionary() *Dictionary {
 	}
 }
 
-func (d *Dictionary) Get(word []byte) uint64 {
-	id := d.trie.GetOrPut(word, d.lastTermID+1)
-	if id > d.lastTermID {
-		d.lastTermID = id
+func (d *Dictionary) Get(word []byte) int32 {
+	id := d.trie.GetOrPut(word, d.lastTermID)
+	if id == d.lastTermID {
+		d.lastTermID += 1
 	}
 
 	return id

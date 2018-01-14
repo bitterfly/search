@@ -11,7 +11,7 @@ type Trie struct {
 	maxIndex    int32
 	transitions map[Transition]int32
 	children    map[int32][]Transition
-	values      map[int32]uint64
+	values      map[int32]int32
 }
 
 func New() *Trie {
@@ -19,7 +19,7 @@ func New() *Trie {
 		maxIndex:    0,
 		transitions: make(map[Transition]int32),
 		children:    make(map[int32][]Transition),
-		values:      make(map[int32]uint64),
+		values:      make(map[int32]int32),
 	}
 }
 
@@ -38,7 +38,7 @@ func (t *Trie) traverseWith(word []byte) (int32, []byte) {
 	return destination, nil
 }
 
-func (t *Trie) Put(word []byte, value uint64) uint64 {
+func (t *Trie) Put(word []byte, value int32) int32 {
 	node, rest := t.traverseWith(word)
 	if rest != nil {
 		for _, letter := range rest {
@@ -53,7 +53,7 @@ func (t *Trie) Put(word []byte, value uint64) uint64 {
 	return value
 }
 
-func (t *Trie) Get(word []byte) *uint64 {
+func (t *Trie) Get(word []byte) *int32 {
 	destination, rest := t.traverseWith(word)
 	if rest == nil {
 		value, _ := t.values[destination]
@@ -65,7 +65,7 @@ func (t *Trie) Get(word []byte) *uint64 {
 
 // Returns the value in the trie if the word is in
 // else it returns the given value
-func (t *Trie) GetOrPut(word []byte, value uint64) uint64 {
+func (t *Trie) GetOrPut(word []byte, value int32) int32 {
 	inTrieValue := t.Get(word)
 	if inTrieValue != nil {
 		return *inTrieValue
@@ -74,7 +74,7 @@ func (t *Trie) GetOrPut(word []byte, value uint64) uint64 {
 	return t.Put(word, value)
 }
 
-func (t *Trie) PutLambda(word []byte, lambda func(uint64) uint64, defaultValue uint64) {
+func (t *Trie) PutLambda(word []byte, lambda func(int32) int32, defaultValue int32) {
 	inTrieValue := t.Get(word)
 	if inTrieValue != nil {
 		t.Put(word, lambda(*inTrieValue))
@@ -83,7 +83,7 @@ func (t *Trie) PutLambda(word []byte, lambda func(uint64) uint64, defaultValue u
 	}
 }
 
-func (t *Trie) walk(node int32, word *[]byte, operation func([]byte, uint64)) {
+func (t *Trie) walk(node int32, word *[]byte, operation func([]byte, int32)) {
 	value, ok := t.values[node]
 
 	//If final apply operation
@@ -99,7 +99,7 @@ func (t *Trie) walk(node int32, word *[]byte, operation func([]byte, uint64)) {
 
 }
 
-func (t *Trie) Walk(operation func([]byte, uint64)) {
+func (t *Trie) Walk(operation func([]byte, int32)) {
 	var word []byte
 	t.walk(0, &word, operation)
 }
