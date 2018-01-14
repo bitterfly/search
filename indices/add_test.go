@@ -12,7 +12,6 @@ func TestAdd(t *testing.T) {
 	doc0 := NewInfoAndTerms()
 	doc0.TermsAndCounts.Put([]byte("foo"), 2)
 	doc0.TermsAndCounts.Put([]byte("bar"), 1)
-	doc0.TermsAndCounts.Put([]byte("foo"), 1)
 
 	doc1 := NewInfoAndTerms()
 	doc1.TermsAndCounts.Put([]byte("bar"), 1)
@@ -114,14 +113,15 @@ func TestAdd(t *testing.T) {
 
 	// Inverse index for "foo"
 	assert.Equal(
-		0,	// "foo" occured in doc0
+		0, // "foo" occured in doc0
 
-		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.Dictionary.Get([]byte("foo"))].FirstIndex].Index
+		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.Dictionary.Get([]byte("foo"))].FirstIndex].Index,
 	)
-	assert.Equal(
-		2,	// "foo" occured twice in doc0
 
-		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.dictionary.Get([]byte("foo"))].FirstIndex].Count
+	assert.Equal(
+		2, // "foo" occured twice in doc0
+
+		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.dictionary.Get([]byte("foo"))].FirstIndex].Count,
 	)
 	assert.Equal(
 		// "foo" occurs only in one document, so first and last are the same
@@ -136,14 +136,14 @@ func TestAdd(t *testing.T) {
 
 	// Inverse index for "qux"
 	assert.Equal(
-		1,	// "qux" occured in doc1
+		1, // "qux" occured in doc1
 
-		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.Dictionary.Get([]byte("qux"))].FirstIndex].Index
+		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.Dictionary.Get([]byte("qux"))].FirstIndex].Index,
 	)
 	assert.Equal(
-		1,	// "qux" occured once in doc1
+		1, // "qux" occured once in doc1
 
-		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.dictionary.Get([]byte("qux"))].FirstIndex].Count
+		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.dictionary.Get([]byte("qux"))].FirstIndex].Count,
 	)
 	assert.Equal(
 		// "qux" occurs only in one document, so first and last are the same
@@ -158,28 +158,28 @@ func TestAdd(t *testing.T) {
 
 	// Inverse index for "bar"
 	assert.Equal(
-		0,	// "bar" occured in doc0
+		0, // "bar" occured in doc0
 
-		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.Dictionary.Get([]byte("bar"))].FirstIndex].Index
+		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.Dictionary.Get([]byte("bar"))].FirstIndex].Index,
 	)
 	assert.Equal(
-		1,	// "bar" occured once in doc0
+		1, // "bar" occured once in doc0
 
-		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.dictionary.Get([]byte("bar"))].FirstIndex].Count
+		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.dictionary.Get([]byte("bar"))].FirstIndex].Count,
 	)
 	assert.Equal(
-		1,	// "bar" occured in doc1
+		1, // "bar" occured in doc1
 
-		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.Dictionary.Get([]byte("bar"))].LastIndex].Index
+		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.Dictionary.Get([]byte("bar"))].LastIndex].Index,
 	)
 	assert.Equal(
-		1,	// "bar" occured once in doc1
+		1, // "bar" occured once in doc1
 
-		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.dictionary.Get([]byte("bar"))].LastIndex].Count
+		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.dictionary.Get([]byte("bar"))].LastIndex].Count,
 	)
 	assert.Equal(
-		ti.Inverse.PostingLists[ti.Inverse.PostingLists[ti.dictionary.Get([]byte("bar"))].LastIndex,
-		ti.Inverse.Postings[ti.Forward.PostingLists[ti.Inverse.PostingLists[ti.dictionary.Get([]byte("bar"))].FirstIndex].NextPostingIndex,
+		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.dictionary.Get([]byte("bar"))].LastIndex],
+		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.Inverse.PostingLists[ti.dictionary.Get([]byte("bar"))].FirstIndex]].NextPostingIndex,
 	)
 	assert.Equal(
 		-1,
