@@ -28,6 +28,11 @@ func main() {
 			Usage: "Stopwords file. If not specified, defaults to ${xmldir}/stopwords",
 			Value: "",
 		},
+		cli.StringFlag{
+			Name:  "output, o",
+			Usage: "File to write index to",
+			Value: "/tmp/index.gob.gz",
+		},
 		cli.BoolFlag{
 			Name:  "classy, y",
 			Usage: "Include documents which have >=1 assigned classes",
@@ -86,7 +91,7 @@ func mainCommand(c *cli.Context) {
 	index := indices.NewTotalIndex()
 	index.AddMany(infosAndTerms)
 
-	err = index.SerialiseToFile(os.Args[2])
+	err = index.SerialiseToFile(c.String("output"))
 	if err != nil {
 		log.Fatalf("Unable to serialise index: %s", err)
 	}
