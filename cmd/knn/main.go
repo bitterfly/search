@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -34,5 +35,7 @@ func mainCommand(c *cli.Context) {
 	}
 
 	info := featureselection.ComputeClassInfo(ti)
-	log.Printf("class histogram: %v", info.DocumentsWhichHaveClass)
+	for i, count := range info.DocumentsWhichHaveClass {
+		fmt.Printf("%s: %d\n", ti.ClassNames.GetInverse(int32(i)), count)
+	}
 }
