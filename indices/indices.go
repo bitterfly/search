@@ -48,6 +48,22 @@ func NewTotalIndex() *TotalIndex {
 	}
 }
 
+func (t *TotalIndex) LoopOverTermPostings(termID int, operation func(posting *Posting)) {
+	postingList := &t.Inverse.PostingLists[termID]
+
+	for posting := &t.Inverse.Postings[postingList.FirstIndex]; posting.NextPostingIndex != -1; posting = &t.Inverse.Postings[posting.NextPostingIndex] {
+		operation(posting)
+	}
+}
+
+func (t *TotalIndex) LoopOverDocumentPostings(docID int, operation func(posting *Posting)) {
+	postingList := &t.Forward.PostingLists[docID]
+
+	for posting := &t.Forward.Postings[postingList.FirstIndex]; posting.NextPostingIndex != -1; posting = &t.Inverse.Postings[posting.NextPostingIndex] {
+		operation(posting)
+	}
+}
+
 func (t *TotalIndex) SerialiseTo(w io.Writer) error {
 	gzWriter := gzip.NewWriter(w)
 	encoder := gob.NewEncoder(gzWriter)

@@ -1,8 +1,8 @@
 package trie
 
 type Dictionary struct {
-	Trie       Trie
-	LastTermID int32
+	Trie Trie
+	Size int32
 }
 
 type BiDictionary struct {
@@ -13,15 +13,15 @@ type BiDictionary struct {
 
 func NewDictionary() *Dictionary {
 	return &Dictionary{
-		Trie:       *New(),
-		LastTermID: 0,
+		Trie: *New(),
+		Size: 0,
 	}
 }
 
 func (d *Dictionary) Get(word []byte) int32 {
-	id := d.Trie.GetOrPut(word, d.LastTermID)
-	if id == d.LastTermID {
-		d.LastTermID += 1
+	id := d.Trie.GetOrPut(word, d.Size)
+	if id == d.Size {
+		d.Size += 1
 	}
 
 	return id
