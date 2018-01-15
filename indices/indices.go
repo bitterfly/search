@@ -51,16 +51,28 @@ func NewTotalIndex() *TotalIndex {
 func (t *TotalIndex) LoopOverTermPostings(termID int, operation func(posting *Posting)) {
 	postingList := &t.Inverse.PostingLists[termID]
 
-	for posting := &t.Inverse.Postings[postingList.FirstIndex]; posting.NextPostingIndex != -1; posting = &t.Inverse.Postings[posting.NextPostingIndex] {
+	for posting := &t.Inverse.Postings[postingList.FirstIndex]; ; posting = &t.Inverse.Postings[posting.NextPostingIndex] {
 		operation(posting)
+
+		if posting.NextPostingIndex == -1 {
+			break
+		}
 	}
 }
 
 func (t *TotalIndex) LoopOverDocumentPostings(docID int, operation func(posting *Posting)) {
 	postingList := &t.Forward.PostingLists[docID]
 
-	for posting := &t.Forward.Postings[postingList.FirstIndex]; posting.NextPostingIndex != -1; posting = &t.Inverse.Postings[posting.NextPostingIndex] {
+	if postingList.FirstIndex == -1 {
+		fmt.Printf("DocId has first index -1: %d, Postinglist: %v\n", docID, postingList)
+		return
+	}
+
+	for posting := &t.Forward.Postings[postingList.FirstIndex]; ; posting = &t.Forward.Postings[posting.NextPostingIndex] {
 		operation(posting)
+		if posting.NextPostingIndex == -1 {
+			break
+		}
 	}
 }
 
