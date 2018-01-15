@@ -56,3 +56,13 @@ func TestDistance(t *testing.T) {
 
 	assert.InDelta(float32(0.25), distance(0, 1, ti), float64(0.0001))
 }
+
+func TestNewCentroid(t *testing.T) {
+	assert := assert.New(t)
+
+	ti := makeIndex()
+
+	ti.Normalise()
+
+	assert.InDeltaSlice([]float32{1, 1, 0.5}, newCentroid([]int{0, 1}, ti), 0.001)
+}

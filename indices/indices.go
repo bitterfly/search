@@ -50,7 +50,7 @@ func NewTotalIndex() *TotalIndex {
 	}
 }
 
-func (t *TotalIndex) LoopOverTermPostings(termID int, operation func(posting *Posting)) {
+func (t *TotalIndex) LoopOverTermPostings(termID int32, operation func(posting *Posting)) {
 	postingList := &t.Inverse.PostingLists[termID]
 
 	for posting := &t.Inverse.Postings[postingList.FirstIndex]; ; posting = &t.Inverse.Postings[posting.NextPostingIndex] {
@@ -62,11 +62,10 @@ func (t *TotalIndex) LoopOverTermPostings(termID int, operation func(posting *Po
 	}
 }
 
-func (t *TotalIndex) LoopOverDocumentPostings(docID int, operation func(posting *Posting)) {
+func (t *TotalIndex) LoopOverDocumentPostings(docID int32, operation func(posting *Posting)) {
 	postingList := &t.Forward.PostingLists[docID]
 
 	if postingList.FirstIndex == -1 {
-		fmt.Printf("DocId has first index -1: %d, Postinglist: %v\n", docID, postingList)
 		return
 	}
 
@@ -112,7 +111,7 @@ func (t *TotalIndex) DeserialiseFrom(r io.Reader) error {
 }
 
 func (t *TotalIndex) Normalise() {
-	for docId := 0; docId < len(t.Forward.PostingLists); docId++ {
+	for docId := int32(0); docId < int32(len(t.Forward.PostingLists)); docId++ {
 		normalise := func(posting *Posting) {
 			if t.Documents[docId].UniqueLength != 0 {
 				posting.NormalisedCount = float32(posting.Count) / float32(t.Documents[docId].UniqueLength)
