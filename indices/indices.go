@@ -11,8 +11,9 @@ import (
 )
 
 type Posting struct {
-	Index int32
-	Count int32
+	Index           int32
+	Count           int32
+	NormalisedCount float32
 
 	NextPostingIndex int32
 }
@@ -60,6 +61,11 @@ func (t *TotalIndex) LoopOverTermPostings(termID int, operation func(posting *Po
 func (t *TotalIndex) LoopOverDocumentPostings(docID int, operation func(posting *Posting)) {
 	postingList := &t.Forward.PostingLists[docID]
 
+	if postingList.FirstIndex == -1 {
+		fmt.Printf("DocId has first index -1: %d, Postinglist: %v\n", docID, postingList)
+		return
+	}
+
 	for posting := &t.Forward.Postings[postingList.FirstIndex]; posting.NextPostingIndex != -1; posting = &t.Forward.Postings[posting.NextPostingIndex] {
 		operation(posting)
 	}
@@ -104,7 +110,7 @@ func (t *TotalIndex) Normalise() {
 			termCount := t.Forward.PostingLists[docId].LastIndex - t.Forward.PostingLists[docId].FirstIndex
 
 			if termCount != int32(0) {
-				posting.Count = posting.Count / termCount
+				posting.NormalisedCount = float32(posting.Count) / float32(termCount)
 			}
 		}
 
