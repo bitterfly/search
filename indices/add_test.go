@@ -17,11 +17,11 @@ func TestAdd(t *testing.T) {
 	doc1.TermsAndCounts.Put([]byte("bar"), 1)
 	doc1.TermsAndCounts.Put([]byte("qux"), 1)
 
-	doc0.DocumentInfo.Name = "doc0"
+	doc0.Name = "doc0"
 	doc0.Classes = []string{"sports", "dodgeball"}
 	doc0.Length = 3
 
-	doc1.DocumentInfo.Name = "doc1"
+	doc1.Name = "doc1"
 	doc1.Classes = []string{"politics"}
 	doc1.Length = 2
 
@@ -42,11 +42,22 @@ func TestAdd(t *testing.T) {
 
 	// Verify document information
 	assert.Equal("doc0", ti.Documents[0].Name)
-	assert.Equal([]string{"sports", "dodgeball"}, ti.Documents[0].Classes)
+	assert.ElementsMatch(
+		[]int32{
+			ti.ClassNames.Get([]byte("sports")),
+			ti.ClassNames.Get([]byte("dodgeball")),
+		},
+		ti.Documents[0].Classes,
+	)
 	assert.Equal(int32(3), ti.Documents[0].Length)
 
 	assert.Equal("doc1", ti.Documents[1].Name)
-	assert.Equal([]string{"politics"}, ti.Documents[1].Classes)
+	assert.ElementsMatch(
+		[]int32{
+			ti.ClassNames.Get([]byte("politics")),
+		},
+		ti.Documents[1].Classes,
+	)
 	assert.Equal(int32(2), ti.Documents[1].Length)
 
 	// Forward index for doc0

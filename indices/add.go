@@ -3,20 +3,19 @@ package indices
 import (
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/DexterLB/search/trie"
 )
 
 type InfoAndTerms struct {
-	DocumentInfo
-
+	Name           string
+	Classes        []string
+	Length         int32
 	TermsAndCounts trie.Trie
 }
 
 func NewInfoAndTerms() *InfoAndTerms {
 	return &InfoAndTerms{
-		DocumentInfo:   DocumentInfo{},
 		TermsAndCounts: *trie.New(),
 	}
 }
@@ -29,9 +28,9 @@ type TermAndCount struct {
 func (d *InfoAndTerms) Print() {
 	fmt.Printf("************\n")
 	fmt.Printf(
-		"name: %s, classes: %s, length: %d\nterms:\n",
+		"name: %s, classes: %v, length: %d\nterms:\n",
 		d.Name,
-		strings.Join(d.Classes, ", "),
+		d.Classes,
 		d.Length,
 	)
 	d.TermsAndCounts.Walk(func(term []byte, count int32) {
@@ -69,7 +68,17 @@ func (t *TotalIndex) Add(d *InfoAndTerms) {
 	//sortedTermsAndCount
 
 	documentIndex := int32(len(t.Documents))
-	t.Documents = append(t.Documents, d.DocumentInfo)
+	info := DocumentInfo{
+		Name:   d.Name,
+		Length: d.Length,
+	}
+
+	info.Classes = make([]int32, len(d.Classes))
+	for i := range d.Classes {
+		info.Classes[i] = t.ClassNames.Get([]byte(d.Classes[i]))
+	}
+
+	t.Documents = append(t.Documents, info)
 
 	// d0
 	// <- d1

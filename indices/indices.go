@@ -32,17 +32,19 @@ type TotalIndex struct {
 	Inverse    Index
 	Documents  []DocumentInfo
 	Dictionary trie.Dictionary
+	ClassNames trie.BiDictionary
 }
 
 type DocumentInfo struct {
 	Name    string
-	Classes []string
+	Classes []int32
 	Length  int32
 }
 
 func NewTotalIndex() *TotalIndex {
 	return &TotalIndex{
 		Dictionary: *trie.NewDictionary(),
+		ClassNames: *trie.NewBiDictionary(),
 	}
 }
 
