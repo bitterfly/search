@@ -97,6 +97,20 @@ func (t *TotalIndex) DeserialiseFrom(r io.Reader) error {
 	return gzReader.Close()
 }
 
+func (t *TotalIndex) Normalise() {
+
+	for docId := 0; docId < len(t.Forward.PostingLists); docId++ {
+		normalise := func(posting *Posting) {
+			termCount := t.Forward.PostingLists[docId].LastIndex - t.Forward.PostingLists[docId].FirstIndex
+			if termCount != int32(0) {
+				posting.Count = posting.Count / termCount
+			}
+		}
+
+		t.LoopOverDocumentPostings(docId, normalise)
+	}
+}
+
 func (t *TotalIndex) DeserialiseFromFile(filename string) error {
 	f, err := os.Open(filename)
 	if err != nil {
