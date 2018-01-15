@@ -69,8 +69,9 @@ func (t *TotalIndex) Add(d *InfoAndTerms) {
 
 	documentIndex := int32(len(t.Documents))
 	info := DocumentInfo{
-		Name:   d.Name,
-		Length: d.Length,
+		Name:         d.Name,
+		Length:       d.Length,
+		UniqueLength: 0,
 	}
 
 	info.Classes = make([]int32, len(d.Classes))
@@ -107,6 +108,8 @@ func (t *TotalIndex) Add(d *InfoAndTerms) {
 
 			t.Forward.Postings[t.Forward.PostingLists[documentIndex].LastIndex].NextPostingIndex = int32(len(t.Forward.Postings) - 1)
 			t.Forward.PostingLists[documentIndex].LastIndex += 1
+
+			t.Documents[documentIndex].UniqueLength += 1
 		}
 
 		//Inverse indexing
