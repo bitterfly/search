@@ -101,6 +101,8 @@ func (t *TotalIndex) Add(d *InfoAndTerms) {
 		// Forward indexing
 		t.Forward.Postings = append(t.Forward.Postings, Posting{Index: term.TermID, Count: term.Count, NextPostingIndex: -1})
 
+		t.Documents[documentIndex].UniqueLength += 1
+
 		if t.Forward.PostingLists[documentIndex].FirstIndex == -1 {
 			t.Forward.PostingLists[documentIndex].FirstIndex = int32(len(t.Forward.Postings) - 1)
 			t.Forward.PostingLists[documentIndex].LastIndex = int32(len(t.Forward.Postings) - 1)
@@ -109,7 +111,6 @@ func (t *TotalIndex) Add(d *InfoAndTerms) {
 			t.Forward.Postings[t.Forward.PostingLists[documentIndex].LastIndex].NextPostingIndex = int32(len(t.Forward.Postings) - 1)
 			t.Forward.PostingLists[documentIndex].LastIndex += 1
 
-			t.Documents[documentIndex].UniqueLength += 1
 		}
 
 		//Inverse indexing

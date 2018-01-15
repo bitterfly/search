@@ -197,4 +197,14 @@ func TestAdd(t *testing.T) {
 		int32(-1),
 		ti.Inverse.Postings[ti.Inverse.PostingLists[ti.Dictionary.Get([]byte("bar"))].LastIndex].NextPostingIndex,
 	)
+
+	assert.Equal(
+		int32(2),
+		ti.Documents[0].UniqueLength,
+	)
+
+	assert.Equal(
+		int32(2),
+		ti.Documents[1].UniqueLength,
+	)
 }
