@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/DexterLB/search/indices"
+	"github.com/DexterLB/search/kmeans"
+
 	"github.com/urfave/cli"
 )
 
@@ -38,7 +40,5 @@ func mainCommand(c *cli.Context) {
 		log.Fatal(err)
 	}
 
-	ti.Normalise()
-
-	log.Printf("k: %d\n", c.Int("k"))
+	kmeans.KMeans(ti, c.Int("k"))
 }

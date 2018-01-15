@@ -114,10 +114,8 @@ func (t *TotalIndex) DeserialiseFrom(r io.Reader) error {
 func (t *TotalIndex) Normalise() {
 	for docId := 0; docId < len(t.Forward.PostingLists); docId++ {
 		normalise := func(posting *Posting) {
-			termCount := t.Forward.PostingLists[docId].LastIndex - t.Forward.PostingLists[docId].FirstIndex
-
-			if termCount != int32(0) {
-				posting.NormalisedCount = float32(posting.Count) / float32(termCount)
+			if t.Documents[docId].UniqueLength != 0 {
+				posting.NormalisedCount = float32(posting.Count) / float32(t.Documents[docId].UniqueLength)
 			}
 		}
 
