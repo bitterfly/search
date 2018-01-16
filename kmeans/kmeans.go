@@ -39,7 +39,11 @@ func RealKMeans(index *indices.TotalIndex, k int) [][]int32 {
 	}
 
 	i := 0
+	var bla int32
 	for docId, _ := range centroidIndices {
+		if i == 0 {
+			bla = docId
+		}
 		index.LoopOverDocumentPostings(docId, func(posting *indices.Posting) {
 			centroids[i][posting.Index] = float32(posting.Count)
 		})
@@ -59,6 +63,32 @@ func RealKMeans(index *indices.TotalIndex, k int) [][]int32 {
 			clearClusters(&clusters)
 			for docId := int32(0); docId < int32(len(index.Forward.PostingLists)); docId++ {
 				centroidIndex := closestCentroid(docId, &centroids, index)
+
+				if times == 0 && docId == bla && distance(docId, centroids[centroidIndex], index) > 0.002 {
+					fmt.Printf("Document:\n")
+					index.LoopOverDocumentPostings(docId, func(posting *indices.Posting) {
+						fmt.Printf("%d(%d) ", posting.Index, posting.Count)
+					})
+					fmt.Printf("\n========\nCentroid 0:\n")
+
+					for i, count := range centroids[centroidIndex] {
+						if count > 0.002 {
+							fmt.Printf("%d(%.3f) ", i, count)
+						}
+					}
+
+					fmt.Printf("\n========\nCentroid %d:\n", centroidIndex)
+
+					for i, count := range centroids[centroidIndex] {
+						if count > 0.002 {
+							fmt.Printf("%d(%.3f) ", i, count)
+						}
+					}
+
+					panic(fmt.Sprintf("\nDocid: %d, Closest Centroid:%d, Distance: %.3f,  Real dist: %.3f", docId, bla, distance(docId, centroids[centroidIndex], index), distance(docId, centroids[0], index)))
+
+				}
+
 				clusters[centroidIndex] = append(clusters[centroidIndex], docId)
 			}
 		}
