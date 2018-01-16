@@ -157,7 +157,7 @@ func distance(documentId int32, centroid []float32, index *indices.TotalIndex) f
 				ind = -1
 			}
 		} else {
-			sum += centroid[i]
+			sum += sqr(centroid[i])
 		}
 	}
 

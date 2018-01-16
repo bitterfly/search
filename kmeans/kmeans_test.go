@@ -54,7 +54,7 @@ func TestDistance(t *testing.T) {
 
 	ti.Normalise()
 
-	dist := float32(0 - 2 + 0.5 - 1 + 1 - 0)
+	dist := ((0-2)*(0-2) + (0.5-1)*(0.5-1) + (1-0)*(1-0))
 
 	assert.InDelta(dist, distance(0, []float32{0, 0.5, 1}, ti), float64(0.0001))
 }
