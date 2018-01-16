@@ -116,3 +116,41 @@ func (t *TotalIndex) DeserialiseFromFile(filename string) error {
 	}
 	return t.DeserialiseFrom(f)
 }
+
+func (t *TotalIndex) Verify() {
+	for docID := range t.Forward.PostingLists {
+		var lastPosting *Posting
+		t.LoopOverDocumentPostings(docID, func(posting *Posting) {
+			if lastPosting != nil {
+				if posting.Index <= lastPosting.Index {
+					panic(fmt.Sprintf(
+						"consecutive postings of document %d have out of order term indices: %d, %d",
+						docID, lastPosting.Index, posting.Index,
+					))
+				}
+			}
+			lastPosting = posting
+		})
+		if lastPosting == nil {
+			panic(fmt.Sprintf("document %d has no terms", docID))
+		}
+	}
+
+	for termID := range t.Inverse.PostingLists {
+		var lastPosting *Posting
+		t.LoopOverDocumentPostings(termID, func(posting *Posting) {
+			if lastPosting != nil {
+				if posting.Index <= lastPosting.Index {
+					panic(fmt.Sprintf(
+						"consecutive postings of term %d have out of order document indices: %d, %d",
+						termID, lastPosting.Index, posting.Index,
+					))
+				}
+			}
+			lastPosting = posting
+		})
+		if lastPosting == nil {
+			panic(fmt.Sprintf("term %d has no documents", termID))
+		}
+	}
+}

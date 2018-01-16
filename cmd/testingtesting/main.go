@@ -90,6 +90,7 @@ func mainCommand(c *cli.Context) {
 
 	index := indices.NewTotalIndex()
 	index.AddMany(infosAndTerms)
+	index.Verify()
 
 	err = index.SerialiseToFile(c.String("output"))
 	if err != nil {
