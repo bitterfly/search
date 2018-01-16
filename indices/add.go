@@ -40,7 +40,9 @@ func (d *InfoAndTerms) Print() {
 
 func (t *TotalIndex) AddMany(infosAndTerms <-chan *InfoAndTerms) {
 	for it := range infosAndTerms {
-		t.Add(it)
+		if !it.TermsAndCounts.Empty() {
+			t.Add(it)
+		}
 	}
 }
 
