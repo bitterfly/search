@@ -36,7 +36,6 @@ func RealKMeans(index *indices.TotalIndex, k int) [][]int32 {
 	//initial centroids are k random documents
 	for i := 0; i < k; i++ {
 		centroids[i] = make([]float32, len(index.Inverse.PostingLists), len(index.Inverse.PostingLists))
-
 	}
 
 	i := 0
@@ -50,13 +49,12 @@ func RealKMeans(index *indices.TotalIndex, k int) [][]int32 {
 
 	clusters := make([][]int32, k, k)
 
-	lastClusters := make([][]int32, k, k)
-	for i := 0; i < k; i++ {
-		lastClusters[i] = []int32{-1}
-	}
-
 	for times := 0; times < 10; times++ {
-		fmt.Printf("Rss: %.3f\n", rss(clusters, centroids, index))
+		fmt.Printf("%d: Rss: %.3f\n", times, rss(clusters, centroids, index))
+		for _, cl := range clusters {
+			fmt.Printf("%d\n", len(cl))
+		}
+		fmt.Printf("=======\n")
 		for i := 0; i < k; i++ {
 			clearClusters(&clusters)
 			for docId := int32(0); docId < int32(len(index.Forward.PostingLists)); docId++ {
@@ -113,6 +111,7 @@ func closestCentroid(documentId int32, centroids *[][]float32, index *indices.To
 		if dist < min {
 			min = dist
 			ind = i
+
 		}
 	}
 
@@ -143,6 +142,29 @@ func newCentroid(documentIds []int32, index *indices.TotalIndex) []float32 {
 }
 
 func distance(documentId int32, centroid []float32, index *indices.TotalIndex) float32 {
+	sum := float32(0)
+
+	posting := &index.Forward.Postings[index.Forward.PostingLists[documentId].FirstIndex]
+	ind := posting.Index
+
+	for i := 0; i < len(centroid); i++ {
+		if int32(i) == ind {
+			sum += sqr(centroid[i] - float32(posting.Count))
+			if posting.NextPostingIndex != int32(-1) {
+				posting = &index.Forward.Postings[posting.NextPostingIndex]
+				ind = posting.Index
+			} else {
+				ind = -1
+			}
+		} else {
+			sum += centroid[i]
+		}
+	}
+
+	return sum
+}
+
+func similarity(documentId int32, centroid []float32, index *indices.TotalIndex) float32 {
 	sum := float32(0)
 	index.LoopOverDocumentPostings(documentId, func(posting *indices.Posting) {
 		sum += posting.NormalisedCount * centroid[posting.Index]

@@ -54,7 +54,9 @@ func TestDistance(t *testing.T) {
 
 	ti.Normalise()
 
-	assert.InDelta(float32(0.25), distance(0, 1, ti), float64(0.0001))
+	dist := float32(0 - 2 + 0.5 - 1 + 1 - 0)
+
+	assert.InDelta(dist, distance(0, []float32{0, 0.5, 1}, ti), float64(0.0001))
 }
 
 func TestNewCentroid(t *testing.T) {
@@ -64,5 +66,24 @@ func TestNewCentroid(t *testing.T) {
 
 	ti.Normalise()
 
-	assert.InDeltaSlice([]float32{1, 1, 0.5}, newCentroid([]int{0, 1}, ti), 0.001)
+	assert.InDeltaSlice([]float32{1, 1, 0.5}, newCentroid([]int32{0, 1}, ti), 0.001)
+}
+
+func TestClosestCentroid(t *testing.T) {
+	assert := assert.New(t)
+
+	ti := makeIndex()
+
+	ti.Normalise()
+
+	// d0 = {1, 0.5}
+	// d1 = {0.5, 0.5}
+
+	centroids := make([][]float32, 2, 2)
+	centroids[0] = []float32{1, 0, 0}
+	centroids[1] = []float32{0, 1, 0}
+
+	assert.Equal(0, closestCentroid(0, &centroids, ti))
+	// assert.Equal(int32(1), closestCentroid(1, &centroids, ti))
+
 }
