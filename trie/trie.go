@@ -14,6 +14,10 @@ type Trie struct {
 	Values      map[int32]int32
 }
 
+func (t *Trie) Empty() bool {
+	return t.MaxIndex == 0
+}
+
 func New() *Trie {
 	return &Trie{
 		MaxIndex:    0,
