@@ -23,6 +23,10 @@ func New() *Trie {
 	}
 }
 
+func (t *Trie) Empty() bool {
+	return t.MaxIndex == 0
+}
+
 func (t *Trie) traverseWith(word []byte) (int32, []byte) {
 	node := int32(0)
 	var destination int32
