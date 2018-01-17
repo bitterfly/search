@@ -2,6 +2,7 @@ package indices
 
 import (
 	"fmt"
+	"log"
 	"sort"
 
 	"github.com/DexterLB/search/trie"
@@ -40,7 +41,11 @@ func (d *InfoAndTerms) Print() {
 
 func (t *TotalIndex) AddMany(infosAndTerms <-chan *InfoAndTerms) {
 	for it := range infosAndTerms {
-		t.Add(it)
+		if it.TermsAndCounts.Empty() {
+			log.Printf("Document %s is empty", it.Name)
+		} else {
+			t.Add(it)
+		}
 	}
 }
 
