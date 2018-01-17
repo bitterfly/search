@@ -61,6 +61,14 @@ func (t *TotalIndex) LoopOverTermPostings(termID int, operation func(posting *Po
 }
 
 func (t *TotalIndex) LoopOverDocumentPostings(docID int, operation func(posting *Posting)) {
+	if docID == -1 {
+		panic("DocID index is -1\n")
+	}
+
+	if docID >= len(t.Forward.PostingLists) {
+		panic(fmt.Sprintf("DocID: %d, size of PostingLists: %d", docID, len(t.Forward.PostingLists)))
+	}
+
 	postingList := &t.Forward.PostingLists[docID]
 
 	if postingList.FirstIndex == -1 {
@@ -138,7 +146,7 @@ func (t *TotalIndex) Verify() {
 
 	for termID := range t.Inverse.PostingLists {
 		var lastPosting *Posting
-		t.LoopOverDocumentPostings(termID, func(posting *Posting) {
+		t.LoopOverTermPostings(termID, func(posting *Posting) {
 			if lastPosting != nil {
 				if posting.Index <= lastPosting.Index {
 					panic(fmt.Sprintf(
