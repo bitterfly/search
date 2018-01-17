@@ -108,9 +108,7 @@ func rssK(cluster []int32, centroid []float32, index *indices.TotalIndex) float3
 	var sum float32
 
 	for _, docId := range cluster {
-		index.LoopOverDocumentPostings(docId, func(posting *indices.Posting) {
-			sum += sqr(float32(posting.Count) - centroid[posting.Index])
-		})
+		sum += distance(docId, centroid, index)
 	}
 
 	return sum
