@@ -20,17 +20,23 @@ func ChiSquared(ti *indices.TotalIndex, termsPerClass int32, parallelWorkers int
 
 func TopChiSquaredTerms(table [][]TermScore, termsPerClass int32) []int32 {
 	termSet := make(map[int32]struct{})
+	termIndices := make([]int32, len(table))
+	termsFromClass := make([]int32, len(table))
 
-	for classIndex := range table {
-		termsFromThisClass := int32(0)
-		for scoreIndex := range table[classIndex] {
-			termID := table[classIndex][scoreIndex].TermID
-			if _, ok := termSet[termID]; !ok {
-				termSet[termID] = struct{}{}
-				termsFromThisClass += 1
-			}
-			if termsFromThisClass >= termsPerClass {
-				break
+	added := true
+	for added {
+		added = false
+		for classIndex := range table {
+			for ; termIndices[classIndex] < int32(len(table[classIndex])) && termsFromClass[classIndex] < termsPerClass; termIndices[classIndex] += 1 {
+				termIndex := termIndices[classIndex]
+
+				termID := table[classIndex][termIndex].TermID
+				if _, ok := termSet[termID]; !ok {
+					termSet[termID] = struct{}{}
+					termsFromClass[classIndex] += 1
+					added = true
+					break
+				}
 			}
 		}
 	}
@@ -75,7 +81,7 @@ func SortedChiSquaredTable(ti *indices.TotalIndex, ci *ClassInfo, parallelWorker
 }
 
 func sortScores(scores []TermScore) {
-	sort.Slice(scores, func(i, j int) bool { return scores[i].Score < scores[j].Score })
+	sort.Slice(scores, func(i, j int) bool { return scores[i].Score > scores[j].Score })
 }
 
 func ChiSquaredForClass(ti *indices.TotalIndex, ci *ClassInfo, classID int32) []float64 {
@@ -103,7 +109,7 @@ func ChiSquaredForTermAndClass(ti *indices.TotalIndex, ci *ClassInfo, termID int
 		}
 	})
 
-	N10 = ci.DocumentsWhichContainTerm[termID] - N11
+	N10 = ci.DocumentsWhichHaveClass[classID] - N11
 	N00 = numDocuments - N01 - N10 + N11
 
 	N := float64(numDocuments)
@@ -118,7 +124,9 @@ func ChiSquaredForTermAndClass(ti *indices.TotalIndex, ci *ClassInfo, termID int
 	M10 := square(float64(N10)-E10) / N
 	M11 := square(float64(N11)-E11) / N
 
-	return M00 + M01 + M10 + M11
+	result := M00 + M01 + M10 + M11
+
+	return result
 }
 
 func docHasClass(ti *indices.TotalIndex, docID int32, classID int32) bool {

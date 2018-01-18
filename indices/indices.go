@@ -31,7 +31,7 @@ type TotalIndex struct {
 	Forward    Index
 	Inverse    Index
 	Documents  []DocumentInfo
-	Dictionary trie.Dictionary
+	Dictionary trie.BiDictionary // bidictionary is better for debugging
 	ClassNames trie.BiDictionary
 }
 
@@ -43,7 +43,7 @@ type DocumentInfo struct {
 
 func NewTotalIndex() *TotalIndex {
 	return &TotalIndex{
-		Dictionary: *trie.NewDictionary(),
+		Dictionary: *trie.NewBiDictionary(),
 		ClassNames: *trie.NewBiDictionary(),
 	}
 }

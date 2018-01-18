@@ -20,11 +20,14 @@ func ComputeClassInfo(ti *indices.TotalIndex) *ClassInfo {
 
 	for termID := range ti.Inverse.PostingLists {
 		ti.LoopOverTermPostings(termID, func(posting *indices.Posting) {
-			for _, class := range ti.Documents[posting.Index].Classes {
-				info.DocumentsWhichHaveClass[class] += 1
-			}
 			info.DocumentsWhichContainTerm[termID] += 1
 		})
+	}
+
+	for docID := range ti.Forward.PostingLists {
+		for _, class := range ti.Documents[docID].Classes {
+			info.DocumentsWhichHaveClass[class] += 1
+		}
 	}
 
 	return info
