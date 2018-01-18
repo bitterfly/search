@@ -12,6 +12,41 @@ type TermScore struct {
 	Score  float64
 }
 
+func ChiSquared(ti *indices.TotalIndex, termsPerClass int32, parallelWorkers int) []int32 {
+	info := ComputeClassInfo(ti)
+	table := SortedChiSquaredTable(ti, info, parallelWorkers)
+	return TopChiSquaredTerms(table, termsPerClass)
+}
+
+func TopChiSquaredTerms(table [][]TermScore, termsPerClass int32) []int32 {
+	termSet := make(map[int32]struct{})
+
+	for classIndex := range table {
+		termsFromThisClass := int32(0)
+		for scoreIndex := range table[classIndex] {
+			termID := table[classIndex][scoreIndex].TermID
+			if _, ok := termSet[termID]; !ok {
+				termSet[termID] = struct{}{}
+				termsFromThisClass += 1
+			}
+			if termsFromThisClass >= termsPerClass {
+				break
+			}
+		}
+	}
+
+	sortedTerms := make([]int32, len(termSet))
+	i := 0
+	for termID, _ := range termSet {
+		sortedTerms[i] = termID
+		i += 1
+	}
+
+	sort.Slice(sortedTerms, func(i, j int) bool { return sortedTerms[i] < sortedTerms[j] })
+
+	return sortedTerms
+}
+
 func SortedChiSquaredTable(ti *indices.TotalIndex, ci *ClassInfo, parallelWorkers int) [][]TermScore {
 	table := make([][]TermScore, ci.NumClasses)
 
