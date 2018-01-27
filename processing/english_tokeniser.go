@@ -7,8 +7,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/DexterLB/prose/tokenize"
-	"github.com/DexterLB/search/trie"
+	"github.com/bitterfly/prose/tokenize"
+	"github.com/bitterfly/search/trie"
 	"github.com/kljensen/snowball"
 )
 

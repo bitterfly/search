@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/DexterLB/search/documents"
-	"github.com/DexterLB/search/indices"
-	"github.com/DexterLB/search/processing"
-	"github.com/DexterLB/search/utils"
+	"github.com/bitterfly/search/documents"
+	"github.com/bitterfly/search/indices"
+	"github.com/bitterfly/search/processing"
+	"github.com/bitterfly/search/utils"
 	"github.com/urfave/cli"
 )
 

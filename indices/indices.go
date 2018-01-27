@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/DexterLB/search/trie"
+	"github.com/bitterfly/search/trie"
 )
 
 type Posting struct {
@@ -41,7 +41,7 @@ type DocumentInfo struct {
 	Classes      []int32
 	Length       int32
 	UniqueLength int32
-	clusterID    int32
+	ClusterID    int32
 }
 
 func NewTotalIndex() *TotalIndex {

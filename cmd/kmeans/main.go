@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/DexterLB/search/indices"
-	"github.com/DexterLB/search/kmeans"
+	"github.com/bitterfly/search/indices"
+	"github.com/bitterfly/search/kmeans"
 
 	"github.com/urfave/cli"
 )

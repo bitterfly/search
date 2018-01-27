@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/DexterLB/search/indices"
+	"github.com/bitterfly/search/indices"
 )
 
 func KMeans(index *indices.TotalIndex, k int) {
@@ -40,14 +40,11 @@ func RealKMeans(index *indices.TotalIndex, k int) [][]int32 {
 
 	i := 0
 	var bla int32
-	for docId, _ := range centroidIndices {
-		if i == 0 {
-			bla = docId
-		}
-		index.LoopOverDocumentPostings(docId, func(posting *indices.Posting) {
+	for docID, _ := range centroidIndices {
+		index.LoopOverDocumentPostings(docID, func(posting *indices.Posting) {
 			centroids[i][posting.Index] = float32(posting.Count)
 		})
-		fmt.Printf("CentroidId %d\n", docId)
+		fmt.Printf("CentroidId %d\n", docID)
 		i++
 	}
 
@@ -61,43 +58,37 @@ func RealKMeans(index *indices.TotalIndex, k int) [][]int32 {
 		fmt.Printf("=======\n")
 		for i := 0; i < k; i++ {
 			clearClusters(&clusters)
-			for docId := int32(0); docId < int32(len(index.Forward.PostingLists)); docId++ {
-				centroidIndex := closestCentroid(docId, &centroids, index)
-
-				if times == 0 && docId == bla && distance(docId, centroids[centroidIndex], index) > 0.002 {
-					fmt.Printf("Document:\n")
-					index.LoopOverDocumentPostings(docId, func(posting *indices.Posting) {
-						fmt.Printf("%d(%d) ", posting.Index, posting.Count)
-					})
-					fmt.Printf("\n========\nCentroid 0:\n")
-
-					for i, count := range centroids[centroidIndex] {
-						if count > 0.002 {
-							fmt.Printf("%d(%.3f) ", i, count)
-						}
-					}
-
-					fmt.Printf("\n========\nCentroid %d:\n", centroidIndex)
-
-					for i, count := range centroids[centroidIndex] {
-						if count > 0.002 {
-							fmt.Printf("%d(%.3f) ", i, count)
-						}
-					}
-
-					panic(fmt.Sprintf("\nDocid: %d, Closest Centroid:%d, Distance: %.3f,  Real dist: %.3f", docId, bla, distance(docId, centroids[centroidIndex], index), distance(docId, centroids[0], index)))
-
-				}
-
-				clusters[centroidIndex] = append(clusters[centroidIndex], docId)
+			for docID := int32(0); docID < int32(len(index.Forward.PostingLists)); docID++ {
+				centroidIndex := closestCentroid(docID, &centroids, index)
+				index.Documents[docID].ClusterID = centroidIndex
 			}
 		}
 
-		for i := 0; i < k; i++ {
-			centroids[i] = newCentroid(clusters[i], index)
-		}
+		NewCentroids(index, k, &centroids)
 	}
 	return clusters
+}
+
+func newCentroids(index *indices.TotalIndex, k int, centroids *[][]float32) []float32 {
+	for i := 0; i < k; i++ {
+		for j := 0; j < len(index.Inverse.PostingLists); j++ {
+			centroids[i][j] = 0
+		}
+	}
+
+	numberOfDocuments := make([]int32, k, k)
+	for docID, doc := range index.Documents {
+		index.LoopOverDocumentPostings(docID, func(posting *indices.Posting) {
+			centroids[doc.ClusterID][posting.Index] += float32(posting.Count)
+		})
+		numberOfDocuments[doc.ClusterID] += 1
+	}
+
+	for i := 0; i < k; i++ {
+		for j := 0; j < len(index.Inverse.PostingLists); j++ {
+			centroids[i][j] /= numberOfDocuments[i]
+		}
+	}
 }
 
 func sqr(x float32) float32 {
@@ -107,8 +98,8 @@ func sqr(x float32) float32 {
 func rssK(cluster []int32, centroid []float32, index *indices.TotalIndex) float32 {
 	var sum float32
 
-	for _, docId := range cluster {
-		sum += distance(docId, centroid, index)
+	for _, docID := range cluster {
+		sum += distance(docID, centroid, index)
 	}
 
 	return sum
@@ -152,21 +143,6 @@ func min(a, b int32) int32 {
 	}
 
 	return b
-}
-
-func newCentroid(documentIds []int32, index *indices.TotalIndex) []float32 {
-	centroid := make([]float32, len(index.Inverse.PostingLists), len(index.Inverse.PostingLists))
-	for _, docID := range documentIds {
-		index.LoopOverDocumentPostings(docID, func(posting *indices.Posting) {
-			centroid[posting.Index] += float32(posting.Count)
-		})
-	}
-
-	for i := 0; i < len(centroid); i++ {
-		centroid[i] /= float32(len(documentIds))
-	}
-
-	return centroid
 }
 
 func distance(documentId int32, centroid []float32, index *indices.TotalIndex) float32 {

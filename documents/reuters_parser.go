@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/DexterLB/htmlparsing"
+	"github.com/bitterfly/htmlparsing"
 	"github.com/jbowtie/gokogiri"
 	"github.com/jbowtie/gokogiri/xml"
 )

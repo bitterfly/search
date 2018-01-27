@@ -3,7 +3,7 @@ package kmeans
 import (
 	"testing"
 
-	"github.com/DexterLB/search/indices"
+	"github.com/bitterfly/search/indices"
 	"github.com/stretchr/testify/assert"
 )
 

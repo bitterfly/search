@@ -5,7 +5,7 @@ import (
 	"log"
 	"sort"
 
-	"github.com/DexterLB/search/trie"
+	"github.com/bitterfly/search/trie"
 )
 
 type InfoAndTerms struct {
@@ -78,7 +78,7 @@ func (t *TotalIndex) Add(d *InfoAndTerms) {
 		Name:         d.Name,
 		Length:       d.Length,
 		UniqueLength: 0,
-		clusterID:    -1,
+		ClusterID:    -1,
 	}
 
 	info.Classes = make([]int32, len(d.Classes))

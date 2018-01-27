@@ -1,8 +1,8 @@
 package processing
 
 import (
-	"github.com/DexterLB/search/documents"
-	"github.com/DexterLB/search/indices"
+	"github.com/bitterfly/search/documents"
+	"github.com/bitterfly/search/indices"
 )
 
 func CountInDocuments(
