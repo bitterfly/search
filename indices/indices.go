@@ -32,7 +32,7 @@ type TotalIndex struct {
 	Forward    Index
 	Inverse    Index
 	Documents  []DocumentInfo
-	Dictionary trie.Dictionary
+	Dictionary trie.BiDictionary // bidictionary is better for debugging
 	ClassNames trie.BiDictionary
 }
 
@@ -45,7 +45,7 @@ type DocumentInfo struct {
 
 func NewTotalIndex() *TotalIndex {
 	return &TotalIndex{
-		Dictionary: *trie.NewDictionary(),
+		Dictionary: *trie.NewBiDictionary(),
 		ClassNames: *trie.NewBiDictionary(),
 	}
 }
@@ -66,6 +66,7 @@ func (t *TotalIndex) LoopOverDocumentPostings(docID int32, operation func(postin
 	postingList := &t.Forward.PostingLists[docID]
 
 	if postingList.FirstIndex == -1 {
+		fmt.Printf("DocId has first index -1: %d, Postinglist: %v\n", docID, postingList)
 		return
 	}
 
@@ -128,4 +129,42 @@ func (t *TotalIndex) DeserialiseFromFile(filename string) error {
 		return fmt.Errorf("unable to open file: %s", err)
 	}
 	return t.DeserialiseFrom(f)
+}
+
+func (t *TotalIndex) Verify() {
+	for docID := range t.Forward.PostingLists {
+		var lastPosting *Posting
+		t.LoopOverDocumentPostings(int32(docID), func(posting *Posting) {
+			if lastPosting != nil {
+				if posting.Index <= lastPosting.Index {
+					panic(fmt.Sprintf(
+						"consecutive postings of document %d have out of order term indices: %d, %d",
+						docID, lastPosting.Index, posting.Index,
+					))
+				}
+			}
+			lastPosting = posting
+		})
+		if lastPosting == nil {
+			panic(fmt.Sprintf("document %d has no terms", docID))
+		}
+	}
+
+	for termID := range t.Inverse.PostingLists {
+		var lastPosting *Posting
+		t.LoopOverTermPostings(int32(termID), func(posting *Posting) {
+			if lastPosting != nil {
+				if posting.Index <= lastPosting.Index {
+					panic(fmt.Sprintf(
+						"consecutive postings of term %d have out of order document indices: %d, %d",
+						termID, lastPosting.Index, posting.Index,
+					))
+				}
+			}
+			lastPosting = posting
+		})
+		if lastPosting == nil {
+			panic(fmt.Sprintf("term %d has no documents", termID))
+		}
+	}
 }

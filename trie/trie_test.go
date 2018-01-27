@@ -59,6 +59,14 @@ func TestTraverse_ABC(t *testing.T) {
 	assert.Equal(destination, int32(3))
 }
 
+func TestPut_PrefixNotPresent(t *testing.T) {
+	assert := assert.New(t)
+
+	trie := New()
+	trie.Put([]byte("provid"), 1)
+	assert.Equal((*int32)(nil), trie.Get([]byte("pro")))
+}
+
 func TestGet_ABC(t *testing.T) {
 	assert := assert.New(t)
 

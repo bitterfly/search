@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"runtime"
 
 	"github.com/DexterLB/search/featureselection"
 	"github.com/DexterLB/search/indices"
@@ -33,6 +35,9 @@ func mainCommand(c *cli.Context) {
 		log.Fatal(err)
 	}
 
-	info := featureselection.ComputeClassInfo(ti)
-	log.Printf("class histogram: %v", info.DocumentsWhichHaveClass)
+	features := featureselection.ChiSquared(ti, 10, runtime.NumCPU())
+
+	for _, termID := range features {
+		fmt.Printf("%d\n", termID)
+	}
 }

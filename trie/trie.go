@@ -60,8 +60,12 @@ func (t *Trie) Put(word []byte, value int32) int32 {
 func (t *Trie) Get(word []byte) *int32 {
 	destination, rest := t.traverseWith(word)
 	if rest == nil {
-		value, _ := t.Values[destination]
-		return &value
+		value, ok := t.Values[destination]
+		if ok {
+			return &value
+		} else {
+			return nil
+		}
 	}
 
 	return nil
