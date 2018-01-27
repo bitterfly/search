@@ -39,7 +39,6 @@ func RealKMeans(index *indices.TotalIndex, k int) [][]int32 {
 	}
 
 	i := 0
-	var bla int32
 	for docID, _ := range centroidIndices {
 		index.LoopOverDocumentPostings(docID, func(posting *indices.Posting) {
 			centroids[i][posting.Index] = float32(posting.Count)
@@ -51,7 +50,7 @@ func RealKMeans(index *indices.TotalIndex, k int) [][]int32 {
 	clusters := make([][]int32, k, k)
 
 	for times := 0; times < 10; times++ {
-		fmt.Printf("%d: Rss: %.3f\n", times, rss(clusters, centroids, index))
+		fmt.Printf("%d: Rss: %.3f\n", times, rss(index, centroids))
 		for _, cl := range clusters {
 			fmt.Printf("%d\n", len(cl))
 		}
@@ -69,24 +68,24 @@ func RealKMeans(index *indices.TotalIndex, k int) [][]int32 {
 	return clusters
 }
 
-func newCentroids(index *indices.TotalIndex, k int, centroids *[][]float32) []float32 {
+func NewCentroids(index *indices.TotalIndex, k int, centroids *[][]float32) {
 	for i := 0; i < k; i++ {
 		for j := 0; j < len(index.Inverse.PostingLists); j++ {
-			centroids[i][j] = 0
+			(*centroids)[i][j] = 0
 		}
 	}
 
 	numberOfDocuments := make([]int32, k, k)
 	for docID, doc := range index.Documents {
-		index.LoopOverDocumentPostings(docID, func(posting *indices.Posting) {
-			centroids[doc.ClusterID][posting.Index] += float32(posting.Count)
+		index.LoopOverDocumentPostings(int32(docID), func(posting *indices.Posting) {
+			(*centroids)[doc.ClusterID][posting.Index] += float32(posting.Count)
 		})
 		numberOfDocuments[doc.ClusterID] += 1
 	}
 
 	for i := 0; i < k; i++ {
 		for j := 0; j < len(index.Inverse.PostingLists); j++ {
-			centroids[i][j] /= numberOfDocuments[i]
+			(*centroids)[i][j] /= float32(numberOfDocuments[i])
 		}
 	}
 }
@@ -95,23 +94,12 @@ func sqr(x float32) float32 {
 	return x * x
 }
 
-func rssK(cluster []int32, centroid []float32, index *indices.TotalIndex) float32 {
+func rss(index *indices.TotalIndex, centroids [][]float32) float32 {
 	var sum float32
 
-	for _, docID := range cluster {
-		sum += distance(docID, centroid, index)
+	for docID, doc := range index.Documents {
+		sum += distance(int32(docID), centroids[doc.ClusterID], index)
 	}
-
-	return sum
-}
-
-func rss(clusters [][]int32, centroids [][]float32, index *indices.TotalIndex) float32 {
-	var sum float32
-
-	for k := 0; k < len(clusters); k++ {
-		sum += rssK(clusters[k], centroids[k], index)
-	}
-
 	return sum
 }
 
