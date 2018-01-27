@@ -12,15 +12,13 @@ import (
 func KMeans(index *indices.TotalIndex, k int) {
 	index.Normalise()
 
-	clusters := RealKMeans(index, k)
-	for i, cluster := range clusters {
-		fmt.Printf("Cluster %d has len %d\n", i, len(cluster))
-	}
+	RealKMeans(index, k)
+	PrintClusters(index, k)
 
 	fmt.Printf("%d\n", k)
 }
 
-func RealKMeans(index *indices.TotalIndex, k int) [][]int32 {
+func RealKMeans(index *indices.TotalIndex, k int) {
 	centroidIndices := make(map[int32]struct{})
 
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -47,16 +45,12 @@ func RealKMeans(index *indices.TotalIndex, k int) [][]int32 {
 		i++
 	}
 
-	clusters := make([][]int32, k, k)
-
 	for times := 0; times < 10; times++ {
 		fmt.Printf("%d: Rss: %.3f\n", times, rss(index, centroids))
-		for _, cl := range clusters {
-			fmt.Printf("%d\n", len(cl))
-		}
+		PrintClusters(index, k)
+
 		fmt.Printf("=======\n")
 		for i := 0; i < k; i++ {
-			clearClusters(&clusters)
 			for docID := int32(0); docID < int32(len(index.Forward.PostingLists)); docID++ {
 				centroidIndex := closestCentroid(docID, &centroids, index)
 				index.Documents[docID].ClusterID = centroidIndex
@@ -65,7 +59,6 @@ func RealKMeans(index *indices.TotalIndex, k int) [][]int32 {
 
 		NewCentroids(index, k, &centroids)
 	}
-	return clusters
 }
 
 func NewCentroids(index *indices.TotalIndex, k int, centroids *[][]float32) {
@@ -103,9 +96,14 @@ func rss(index *indices.TotalIndex, centroids [][]float32) float32 {
 	return sum
 }
 
-func clearClusters(clusters *[][]int32) {
-	for i := 0; i < len(*clusters); i++ {
-		(*clusters)[i] = nil
+func PrintClusters(index *indices.TotalIndex, k int) {
+	clusterNums := make([]int, k, k)
+	for _, doc := range index.Documents {
+		clusterNums[doc.ClusterID] += 1
+	}
+
+	for i := 0; i < len(clusterNums); i++ {
+		fmt.Printf("%d: %d\n", i, clusterNums[i])
 	}
 }
 
@@ -164,48 +162,3 @@ func similarity(documentId int32, centroid []float32, index *indices.TotalIndex)
 
 	return sum
 }
-
-// func distance(firstDocId, secondDocId int32, index *indices.TotalIndex) float32 {
-// 	d1Posting := &index.Forward.Postings[index.Forward.PostingLists[firstDocId].FirstIndex]
-// 	d2Posting := &index.Forward.Postings[index.Forward.PostingLists[secondDocId].FirstIndex]
-
-// 	sum := float32(0)
-
-// 	for {
-
-// 		if d1Posting.Index == d2Posting.Index {
-// 			fmt.Printf("They are the same on index: %d\n", d1Posting.Index)
-
-// 			sum += d1Posting.NormalisedCount * d2Posting.NormalisedCount
-// 			if d1Posting.NextPostingIndex != -1 {
-// 				d1Posting = &index.Forward.Postings[d1Posting.NextPostingIndex]
-// 			} else {
-// 				break
-// 			}
-
-// 			if d2Posting.NextPostingIndex != -1 {
-// 				d2Posting = &index.Forward.Postings[d2Posting.NextPostingIndex]
-// 			} else {
-// 				break
-// 			}
-// 		}
-
-// 		if d1Posting.Index < d2Posting.Index {
-// 			if d1Posting.NextPostingIndex != -1 {
-// 				d1Posting = &index.Forward.Postings[d1Posting.NextPostingIndex]
-// 			} else {
-// 				break
-// 			}
-// 		}
-
-// 		if d1Posting.Index > d2Posting.Index {
-// 			if d2Posting.NextPostingIndex != -1 {
-// 				d2Posting = &index.Forward.Postings[d2Posting.NextPostingIndex]
-// 			} else {
-// 				break
-// 			}
-// 		}
-// 	}
-
-// 	return sum
-// }
