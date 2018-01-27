@@ -41,6 +41,7 @@ type DocumentInfo struct {
 	Classes      []int32
 	Length       int32
 	UniqueLength int32
+	clusterID    int32
 }
 
 func NewTotalIndex() *TotalIndex {
