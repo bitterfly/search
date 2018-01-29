@@ -17,7 +17,7 @@ func ProcessArguments(index *indices.TotalIndex, k int) {
 	rsss := KMeans(index, k)
 	fmt.Printf("\n")
 	for i := 1; i < len(rsss); i++ {
-		fmt.Printf("%.5f\t%.5f-%.5f\n", rsss[i-1]-rsss[i], rsss[i-1], rsss[i])
+		fmt.Printf("%d %7.5f\t%.5f-%.5f\n", i, rsss[i-1]-rsss[i], rsss[i-1], rsss[i])
 	}
 
 	// PrintClusters(index, k)
@@ -65,11 +65,6 @@ func KMeans(index *indices.TotalIndex, k int) []float64 {
 		if times > 1 && rsss[times-1]-rsss[times] < 0.00001 {
 			break
 		}
-
-		// fmt.Printf("%d: Rss: %.3f\n", times, rsss[times])
-		// PrintClusters(index, k)
-
-		// fmt.Printf("=======\n")
 
 		docIdChannel := make(chan int32)
 
