@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"runtime"
 	"time"
 
+	"github.com/DexterLB/search/utils"
 	"github.com/bitterfly/search/indices"
 )
 
@@ -53,27 +55,41 @@ func KMeans(index *indices.TotalIndex, k int) []float64 {
 		i++
 	}
 
-	iterations := 50
-	rsss := make([]float64, iterations, iterations)
+	iterations := 100
+	rsss := make([]float64, 0, iterations)
 	// Group the documents in clusters and recalculate the new centroid of the cluster
+	fmt.Printf("start")
 	for times := 0; times < iterations; times++ {
-
-		rsss[times] = rss(index, centroids)
-		// if times > 1 && rsss[times-1]-rsss[times] < 0.00001 {
-		// 	break
-		// }
+		fmt.Printf("\riteration %4d", times)
+		rsss = append(rsss, rss(index, centroids))
+		if times > 1 && rsss[times-1]-rsss[times] < 0.00001 {
+			break
+		}
 
 		// fmt.Printf("%d: Rss: %.3f\n", times, rsss[times])
 		// PrintClusters(index, k)
 
 		// fmt.Printf("=======\n")
-		for docID := int32(0); docID < int32(len(index.Forward.PostingLists)); docID++ {
-			centroidIndex := closestCentroid(index, &centroids, docID)
-			index.Documents[docID].ClusterID = centroidIndex
-		}
+
+		docIdChannel := make(chan int32)
+
+		go func() {
+			for docID := int32(0); docID < int32(len(index.Forward.PostingLists)); docID++ {
+				docIdChannel <- docID
+			}
+			close(docIdChannel)
+		}()
+
+		utils.Parallel(func() {
+			for docID := range docIdChannel {
+				centroidIndex := closestCentroid(index, &centroids, docID)
+				index.Documents[docID].ClusterID = centroidIndex
+			}
+		}, runtime.NumCPU())
 
 		NewCentroids(index, k, &centroids)
 	}
+	fmt.Printf("\n")
 	return rsss
 }
 
