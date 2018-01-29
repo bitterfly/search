@@ -19,8 +19,11 @@ func ProcessArguments(index *indices.TotalIndex, k int) {
 }
 
 func KMeans(index *indices.TotalIndex, k int) {
+	// Initialise this set in order to produce k random indices, because there isn't a way to get k
+	// random numbers at once
 	centroidIndices := make(map[int32]struct{})
 
+	// Keep generating a new random number until there are k keys in centroidIndices
 	rand.Seed(time.Now().UTC().UnixNano())
 	for len(centroidIndices) < k {
 		ind := rand.Int31n(int32(len(index.Forward.PostingLists)))
@@ -29,13 +32,13 @@ func KMeans(index *indices.TotalIndex, k int) {
 		}
 	}
 
+	// Create the the empty centroids which are k vectors each having length of the total number of terms
 	centroids := make([][]float32, k, k)
-
-	//initial centroids are k random documents
 	for i := 0; i < k; i++ {
 		centroids[i] = make([]float32, len(index.Inverse.PostingLists), len(index.Inverse.PostingLists))
 	}
 
+	// Make the k documents corresponding to the indices we've fetched in the previous step the new centroids
 	i := 0
 	for docID, _ := range centroidIndices {
 		index.LoopOverDocumentPostings(docID, func(posting *indices.Posting) {
@@ -45,6 +48,7 @@ func KMeans(index *indices.TotalIndex, k int) {
 		i++
 	}
 
+	// Group the documents in clusters and recalculate the new centroid of the cluster
 	for times := 0; times < 10; times++ {
 		fmt.Printf("%d: Rss: %.3f\n", times, rss(index, centroids))
 		PrintClusters(index, k)
@@ -56,11 +60,13 @@ func KMeans(index *indices.TotalIndex, k int) {
 				index.Documents[docID].ClusterID = centroidIndex
 			}
 		}
-
 		NewCentroids(index, k, &centroids)
 	}
 }
 
+// Empty old centroids
+// Cycle through all documents and add to the corresponding index and count the number of documents in this
+// cluster with the numberOfDocuments array in order to normalise later
 func NewCentroids(index *indices.TotalIndex, k int, centroids *[][]float32) {
 	for i := 0; i < k; i++ {
 		for j := 0; j < len(index.Inverse.PostingLists); j++ {
@@ -87,6 +93,7 @@ func sqr(x float32) float32 {
 	return x * x
 }
 
+// Returns the sum of the distance between a centroid and the documents in ints cluster for all the clusters
 func rss(index *indices.TotalIndex, centroids [][]float32) float32 {
 	var sum float32
 
@@ -107,6 +114,7 @@ func PrintClusters(index *indices.TotalIndex, k int) {
 	}
 }
 
+// Finds the centroid with minimal distance to the document
 func closestCentroid(documentId int32, centroids *[][]float32, index *indices.TotalIndex) int {
 	min := float32(math.MaxFloat32)
 	ind := -1
@@ -123,14 +131,8 @@ func closestCentroid(documentId int32, centroids *[][]float32, index *indices.To
 	return ind
 }
 
-func min(a, b int32) int32 {
-	if a < b {
-		return a
-	}
-
-	return b
-}
-
+// Finds the squared distance between the centroid (witch is an array with exact length of the total number of terms)
+// and a document (which is a much sparser array)
 func distance(documentId int32, centroid []float32, index *indices.TotalIndex) float32 {
 	sum := float32(0)
 
@@ -150,15 +152,5 @@ func distance(documentId int32, centroid []float32, index *indices.TotalIndex) f
 			sum += sqr(centroid[i])
 		}
 	}
-
-	return sum
-}
-
-func similarity(documentId int32, centroid []float32, index *indices.TotalIndex) float32 {
-	sum := float32(0)
-	index.LoopOverDocumentPostings(documentId, func(posting *indices.Posting) {
-		sum += posting.NormalisedCount * centroid[posting.Index]
-	})
-
 	return sum
 }
