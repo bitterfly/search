@@ -56,7 +56,7 @@ func KMeans(index *indices.TotalIndex, k int) {
 		fmt.Printf("=======\n")
 		for i := 0; i < k; i++ {
 			for docID := int32(0); docID < int32(len(index.Forward.PostingLists)); docID++ {
-				centroidIndex := closestCentroid(docID, &centroids, index)
+				centroidIndex := closestCentroid(index, &centroids, docID)
 				index.Documents[docID].ClusterID = centroidIndex
 			}
 		}
@@ -98,7 +98,7 @@ func rss(index *indices.TotalIndex, centroids [][]float32) float32 {
 	var sum float32
 
 	for docID, doc := range index.Documents {
-		sum += distance(int32(docID), centroids[doc.ClusterID], index)
+		sum += distance(index, centroids[doc.ClusterID], int32(docID))
 	}
 	return sum
 }
@@ -115,12 +115,12 @@ func PrintClusters(index *indices.TotalIndex, k int) {
 }
 
 // Finds the centroid with minimal distance to the document
-func closestCentroid(documentId int32, centroids *[][]float32, index *indices.TotalIndex) int {
+func closestCentroid(index *indices.TotalIndex, centroids *[][]float32, documentId int32) int {
 	min := float32(math.MaxFloat32)
 	ind := -1
 
 	for i := 0; i < len(*centroids); i++ {
-		dist := distance(documentId, (*centroids)[i], index)
+		dist := distance(index, (*centroids)[i], documentId)
 		if dist < min {
 			min = dist
 			ind = i
@@ -133,7 +133,7 @@ func closestCentroid(documentId int32, centroids *[][]float32, index *indices.To
 
 // Finds the squared distance between the centroid (witch is an array with exact length of the total number of terms)
 // and a document (which is a much sparser array)
-func distance(documentId int32, centroid []float32, index *indices.TotalIndex) float32 {
+func distance(index *indices.TotalIndex, centroid []float32, documentId int32) float32 {
 	sum := float32(0)
 
 	posting := &index.Forward.Postings[index.Forward.PostingLists[documentId].FirstIndex]
