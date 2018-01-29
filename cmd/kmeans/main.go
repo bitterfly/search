@@ -40,5 +40,5 @@ func mainCommand(c *cli.Context) {
 		log.Fatal(err)
 	}
 
-	kmeans.KMeans(ti, c.Int("k"))
+	kmeans.ProcessArguments(ti, c.Int("k"))
 }

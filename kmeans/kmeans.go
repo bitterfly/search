@@ -9,16 +9,16 @@ import (
 	"github.com/bitterfly/search/indices"
 )
 
-func KMeans(index *indices.TotalIndex, k int) {
+func ProcessArguments(index *indices.TotalIndex, k int) {
 	index.Normalise()
 
-	RealKMeans(index, k)
+	KMeans(index, k)
 	PrintClusters(index, k)
 
 	fmt.Printf("%d\n", k)
 }
 
-func RealKMeans(index *indices.TotalIndex, k int) {
+func KMeans(index *indices.TotalIndex, k int) {
 	centroidIndices := make(map[int32]struct{})
 
 	rand.Seed(time.Now().UTC().UnixNano())
