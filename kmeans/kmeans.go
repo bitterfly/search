@@ -14,15 +14,81 @@ import (
 func ProcessArguments(index *indices.TotalIndex, k int) {
 	index.Normalise()
 
-	rsss := KMeans(index, k)
-	fmt.Printf("\n")
-	for i := 1; i < len(rsss); i++ {
-		fmt.Printf("%d %7.5f\t%.5f-%.5f\n", i, rsss[i-1]-rsss[i], rsss[i-1], rsss[i])
+	KMeans(index, k)
+
+	// fmt.Printf("%d %.5f %d\n", k, rsss[len(rsss)-1], uniqueClasses(index, k))
+
+	t := tableise(index, k)
+
+	for i := 0; i < int(index.ClassNames.Size); i++ {
+		for j := 0; j < k; j++ {
+			if j < int(index.ClassNames.Size-1) {
+				fmt.Printf("%d ", t[i][j])
+			} else {
+				fmt.Printf("%d", t[i][j])
+			}
+		}
+		fmt.Printf("\n")
 	}
 
+	// fmt.Printf("\n")
+	// for i := 1; i < len(rsss); i++ {
+	// 	fmt.Printf("%d %7.5f\t%.5f-%.5f\n", i, rsss[i-1]-rsss[i], rsss[i-1], rsss[i])
+	// }
 	// PrintClusters(index, k)
+	// fmt.Printf("%d\n", k)
 
-	fmt.Printf("%d\n", k)
+}
+
+func tableise(index *indices.TotalIndex, k int) [][]int {
+	t := make([][]int, index.ClassNames.Size, index.ClassNames.Size)
+	for i := 0; i < int(index.ClassNames.Size); i++ {
+		t[i] = make([]int, k, k)
+	}
+
+	for _, doc := range index.Documents {
+		for _, class := range doc.Classes {
+			t[class][doc.ClusterID] += 1
+		}
+	}
+
+	return t
+}
+
+func uniqueClasses(index *indices.TotalIndex, k int) int {
+	uc := make([]map[int32]int, k, k)
+
+	classes := make([]int, k, k)
+
+	for i, _ := range uc {
+		uc[i] = make(map[int32]int)
+	}
+
+	for _, doc := range index.Documents {
+		for _, class := range doc.Classes {
+			uc[doc.ClusterID][class] += 1
+		}
+		classes[doc.ClusterID] += 1
+	}
+
+	sum := 0
+	for i := 0; i < k; i++ {
+		sum += classes[i] - getMaxDict(uc[i])
+	}
+
+	return sum
+}
+
+func getMaxDict(d map[int32]int) int {
+	max := 0
+
+	for _, v := range d {
+		if v > max {
+			max = v
+		}
+	}
+
+	return max
 }
 
 func KMeans(index *indices.TotalIndex, k int) []float64 {
@@ -51,17 +117,20 @@ func KMeans(index *indices.TotalIndex, k int) []float64 {
 		index.LoopOverDocumentPostings(docID, func(posting *indices.Posting) {
 			centroids[i][posting.Index] = float64(posting.Count)
 		})
-		fmt.Printf("CentroidId %d\n", docID)
+		// fmt.Printf("CentroidId %d\n", docID)
 		i++
 	}
 
 	iterations := 100
 	rsss := make([]float64, 0, iterations)
 	// Group the documents in clusters and recalculate the new centroid of the cluster
-	fmt.Printf("start")
+	// fmt.Printf("start")
 	for times := 0; times < iterations; times++ {
-		fmt.Printf("\riteration %4d", times)
+		// fmt.Printf("\riteration %4d", times)
+
 		rsss = append(rsss, rss(index, centroids))
+
+		// break if there is no difference between new and old centroids
 		if times > 1 && rsss[times-1]-rsss[times] < 0.00001 {
 			break
 		}
@@ -122,6 +191,10 @@ func rss(index *indices.TotalIndex, centroids [][]float64) float64 {
 	var sum float64
 
 	for docID, doc := range index.Documents {
+		if doc.ClusterID == -1 {
+			return math.MaxFloat64
+		}
+
 		sum += distance(index, centroids[doc.ClusterID], int32(docID))
 	}
 	return sum
