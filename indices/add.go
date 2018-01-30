@@ -102,7 +102,7 @@ func (t *TotalIndex) Add(d *InfoAndTerms) {
 	//
 	//
 
-	t.Forward.PostingLists = append(t.Forward.PostingLists, PostingList{FirstIndex: -1, LastIndex: -1})
+	t.Forward.PostingLists = append(t.Forward.PostingLists, PostingList{FirstIndex: -1, LastIndex: -1, Len: 0})
 
 	for _, term := range sortedTermsAndCounts {
 		// Forward indexing
@@ -117,8 +117,8 @@ func (t *TotalIndex) Add(d *InfoAndTerms) {
 
 			t.Forward.Postings[t.Forward.PostingLists[documentIndex].LastIndex].NextPostingIndex = int32(len(t.Forward.Postings) - 1)
 			t.Forward.PostingLists[documentIndex].LastIndex += 1
-
 		}
+		t.Forward.PostingLists[documentIndex].Len += 1
 
 		//Inverse indexing
 		if int32(len(t.Inverse.PostingLists)) > term.TermID {
@@ -130,15 +130,15 @@ func (t *TotalIndex) Add(d *InfoAndTerms) {
 			t.Inverse.Postings = append(t.Inverse.Postings, Posting{Index: documentIndex, Count: term.Count, NextPostingIndex: -1})
 			t.Inverse.Postings[t.Inverse.PostingLists[term.TermID].LastIndex].NextPostingIndex = int32(len(t.Inverse.Postings)) - 1
 			t.Inverse.PostingLists[term.TermID].LastIndex = int32(len(t.Inverse.Postings)) - 1
+			t.Inverse.PostingLists[term.TermID].Len += 1
 		} else if int32(len(t.Inverse.PostingLists)) == term.TermID {
 			//PL -> [f:0 l:0]
 			// [index: 0, count: 2, NextPI: -1]
-			t.Inverse.PostingLists = append(t.Inverse.PostingLists, PostingList{FirstIndex: int32(len(t.Inverse.Postings)), LastIndex: int32(len(t.Inverse.Postings))})
+			t.Inverse.PostingLists = append(t.Inverse.PostingLists, PostingList{FirstIndex: int32(len(t.Inverse.Postings)), LastIndex: int32(len(t.Inverse.Postings)), Len: 0})
 			t.Inverse.Postings = append(t.Inverse.Postings, Posting{Index: documentIndex, Count: term.Count, NextPostingIndex: -1})
 		} else {
 			panic(fmt.Sprintf("lenPostingList: %d, lenPostings: %d, termId: %d\n", len(t.Inverse.PostingLists), len(t.Inverse.Postings), term.TermID))
 		}
-
 	}
 
 }

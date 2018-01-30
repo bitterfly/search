@@ -21,6 +21,7 @@ type Posting struct {
 type PostingList struct {
 	FirstIndex int32
 	LastIndex  int32
+	Len        int
 }
 
 type Index struct {

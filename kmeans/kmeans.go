@@ -16,12 +16,12 @@ func ProcessArguments(index *indices.TotalIndex, k int) {
 
 	rsss := KMeans(index, k)
 
-	for i := 2; i < len(rsss); i++ {
+	// for i := 2; i < len(rsss); i++ {
 
-		fmt.Printf("%d %.5f\n", i-1, rsss[i-1]-rsss[i])
-	}
+	// 	fmt.Printf("%d %.5f\n", i-1, rsss[i-1]-rsss[i])
+	// }
 
-	// fmt.Printf("%d %.5f %d\n", k, rsss[len(rsss)-1], uniqueClasses(index, k))
+	fmt.Printf("%d %.5f %d\n", k, rsss[len(rsss)-1], uniqueClasses(index, k))
 
 	// PrintClusters(index, k)
 	// fmt.Printf("%d\n", k)
@@ -103,7 +103,7 @@ func KMeans(index *indices.TotalIndex, k int) []float64 {
 	i := 0
 	for docID, _ := range centroidIndices {
 		index.LoopOverDocumentPostings(docID, func(posting *indices.Posting) {
-			centroids[i][posting.Index] = tf(posting.Count, index.Documents[docID].Length)
+			centroids[i][posting.Index] = tf(posting.Count, index.Documents[docID].Length) * idf(index, posting.Index)
 		})
 		// fmt.Printf("CentroidId %d\n", docID)
 		i++
@@ -152,6 +152,10 @@ func tf(count, len int32) float64 {
 	return float64(count) / float64(len)
 }
 
+func idf(index *indices.TotalIndex, termID int32) float64 {
+	return float64(len(index.Documents)) / math.Log(float64(1+index.Inverse.PostingLists[termID].Len))
+}
+
 // Empty old centroids
 // Cycle through all documents and add to the corresponding index and count the number of documents in this
 // cluster with the numberOfDocuments array in order to normalise later
@@ -165,7 +169,7 @@ func NewCentroids(index *indices.TotalIndex, k int, centroids *[][]float64) {
 	numberOfDocuments := make([]int32, k, k)
 	for docID, doc := range index.Documents {
 		index.LoopOverDocumentPostings(int32(docID), func(posting *indices.Posting) {
-			(*centroids)[doc.ClusterID][posting.Index] += tf(posting.Count, doc.Length)
+			(*centroids)[doc.ClusterID][posting.Index] += tf(posting.Count, doc.Length) * idf(index, posting.Index)
 		})
 		numberOfDocuments[doc.ClusterID] += 1
 	}
@@ -234,7 +238,7 @@ func distance(index *indices.TotalIndex, centroid []float64, documentId int32) f
 
 	for i := 0; i < len(centroid); i++ {
 		if int32(i) == ind {
-			sum += sqr(centroid[i] - tf(posting.Count, doclen))
+			sum += sqr(centroid[i] - tf(posting.Count, doclen)*idf(index, posting.Index))
 			if posting.NextPostingIndex != int32(-1) {
 				posting = &index.Forward.Postings[posting.NextPostingIndex]
 				ind = posting.Index
