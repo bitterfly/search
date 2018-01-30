@@ -14,14 +14,14 @@ import (
 func ProcessArguments(index *indices.TotalIndex, k int) {
 	index.Normalise()
 
-	rsss := KMeans(index, k)
+	KMeans(index, k)
 
 	// for i := 2; i < len(rsss); i++ {
 
 	// 	fmt.Printf("%d %.5f\n", i-1, rsss[i-1]-rsss[i])
 	// }
 
-	fmt.Printf("%d %.5f %d\n", k, rsss[len(rsss)-1], uniqueClasses(index, k))
+	fmt.Printf("%d %.2f\n", k, purity(index, k))
 
 	// PrintClusters(index, k)
 	// fmt.Printf("%d\n", k)
@@ -43,10 +43,8 @@ func tableise(index *indices.TotalIndex, k int) [][]int {
 	return t
 }
 
-func uniqueClasses(index *indices.TotalIndex, k int) int {
+func purity(index *indices.TotalIndex, k int) float64 {
 	uc := make([]map[int32]int, k, k)
-
-	classes := make([]int, k, k)
 
 	for i, _ := range uc {
 		uc[i] = make(map[int32]int)
@@ -56,15 +54,14 @@ func uniqueClasses(index *indices.TotalIndex, k int) int {
 		for _, class := range doc.Classes {
 			uc[doc.ClusterID][class] += 1
 		}
-		classes[doc.ClusterID] += 1
 	}
 
 	sum := 0
 	for i := 0; i < k; i++ {
-		sum += classes[i] - getMaxDict(uc[i])
+		sum += getMaxDict(uc[i])
 	}
 
-	return sum
+	return float64(sum) / float64(len(index.Documents))
 }
 
 func getMaxDict(d map[int32]int) int {
