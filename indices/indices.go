@@ -35,6 +35,7 @@ type TotalIndex struct {
 	Documents  []DocumentInfo
 	Dictionary trie.BiDictionary // bidictionary is better for debugging
 	ClassNames trie.BiDictionary
+	Centroids  [][]float64
 }
 
 type DocumentInfo struct {

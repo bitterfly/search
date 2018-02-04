@@ -5,27 +5,17 @@ import (
 	"math"
 	"math/rand"
 	"runtime"
+	"sort"
 	"time"
 
-	"github.com/DexterLB/search/utils"
 	"github.com/bitterfly/search/indices"
+	"github.com/bitterfly/search/utils"
 )
 
 func ProcessArguments(index *indices.TotalIndex, k int) {
 	index.Normalise()
 
 	KMeans(index, k)
-
-	// for i := 2; i < len(rsss); i++ {
-
-	// 	fmt.Printf("%d %.5f\n", i-1, rsss[i-1]-rsss[i])
-	// }
-
-	fmt.Printf("%d %.2f\n", k, purity(index, k))
-
-	// PrintClusters(index, k)
-	// fmt.Printf("%d\n", k)
-
 }
 
 func tableise(index *indices.TotalIndex, k int) [][]int {
@@ -43,8 +33,24 @@ func tableise(index *indices.TotalIndex, k int) [][]int {
 	return t
 }
 
-func purity(index *indices.TotalIndex, k int) float64 {
+func MostCommonClassInCluster(index *indices.TotalIndex, clusterIndex int) int32 {
+	classes := make(map[int32]int)
+
+	for _, doc := range index.Documents {
+		if doc.ClusterID == clusterIndex {
+			for _, class := range doc.Classes {
+				classes[class] += 1
+			}
+		}
+	}
+
+	_, mostCommonClass := getMaxDict(classes)
+	return mostCommonClass
+}
+
+func Purity(index *indices.TotalIndex, k int) (float64, []int32) {
 	uc := make([]map[int32]int, k, k)
+	commonCLasses := make([]int32, k, k)
 
 	for i, _ := range uc {
 		uc[i] = make(map[int32]int)
@@ -57,28 +63,39 @@ func purity(index *indices.TotalIndex, k int) float64 {
 	}
 
 	sum := 0
+	var max int
+	var class int32
+
 	for i := 0; i < k; i++ {
-		sum += getMaxDict(uc[i])
+		max, class = getMaxDict(uc[i])
+		sum += max
+
+		commonCLasses[i] = class
 	}
 
-	return float64(sum) / float64(len(index.Documents))
+	return float64(sum) / float64(len(index.Documents)), commonCLasses
 }
 
-func getMaxDict(d map[int32]int) int {
+//returns how many documents in cluster have the most common class and the class id
+func getMaxDict(d map[int32]int) (int, int32) {
 	max := 0
+	var class int32 = -1
 
-	for _, v := range d {
+	for k, v := range d {
 		if v > max {
 			max = v
+			class = k
 		}
+
 	}
 
-	return max
+	return max, class
 }
 
 func KMeans(index *indices.TotalIndex, k int) []float64 {
 	// Initialise this set in order to produce k random indices, because there isn't a way to get k
 	// random numbers at once
+
 	centroidIndices := make(map[int32]struct{})
 
 	// Keep generating a new random number until there are k keys in centroidIndices
@@ -91,16 +108,16 @@ func KMeans(index *indices.TotalIndex, k int) []float64 {
 	}
 
 	// Create the the empty centroids which are k vectors each having length of the total number of terms
-	centroids := make([][]float64, k, k)
+	index.Centroids = make([][]float64, k, k)
 	for i := 0; i < k; i++ {
-		centroids[i] = make([]float64, len(index.Inverse.PostingLists), len(index.Inverse.PostingLists))
+		index.Centroids[i] = make([]float64, len(index.Inverse.PostingLists), len(index.Inverse.PostingLists))
 	}
 
 	// Make the k documents corresponding to the indices we've fetched in the previous step the new centroids
 	i := 0
 	for docID, _ := range centroidIndices {
 		index.LoopOverDocumentPostings(docID, func(posting *indices.Posting) {
-			centroids[i][posting.Index] = tf(posting.Count, index.Documents[docID].Length) * idf(index, posting.Index)
+			index.Centroids[i][posting.Index] = tf(posting.Count, index.Documents[docID].Length) * idf(index, posting.Index)
 			// centroids[i][posting.Index] = tf(posting.Count, index.Documents[docID].Length)
 		})
 		// fmt.Printf("CentroidId %d\n", docID)
@@ -114,7 +131,7 @@ func KMeans(index *indices.TotalIndex, k int) []float64 {
 	for times := 0; times < iterations; times++ {
 		// fmt.Printf("\riteration %4d", times)
 
-		rsss = append(rsss, rss(index, centroids))
+		rsss = append(rsss, rss(index))
 
 		// break if there is no difference between new and old centroids
 		if times > 1 && rsss[times-1]-rsss[times] < 0.00001 {
@@ -132,12 +149,12 @@ func KMeans(index *indices.TotalIndex, k int) []float64 {
 
 		utils.Parallel(func() {
 			for docID := range docIdChannel {
-				centroidIndex := closestCentroid(index, &centroids, docID)
+				centroidIndex := closestCentroid(index, docID)
 				index.Documents[docID].ClusterID = centroidIndex
 			}
 		}, runtime.NumCPU())
 
-		NewCentroids(index, k, &centroids)
+		NewCentroids(index, k)
 	}
 	return rsss
 }
@@ -156,17 +173,17 @@ func idf(index *indices.TotalIndex, termID int32) float64 {
 // Empty old centroids
 // Cycle through all documents and add to the corresponding index and count the number of documents in this
 // cluster with the numberOfDocuments array in order to normalise later
-func NewCentroids(index *indices.TotalIndex, k int, centroids *[][]float64) {
+func NewCentroids(index *indices.TotalIndex, k int) {
 	for i := 0; i < k; i++ {
 		for j := 0; j < len(index.Inverse.PostingLists); j++ {
-			(*centroids)[i][j] = 0
+			(*index).Centroids[i][j] = 0
 		}
 	}
 
 	numberOfDocuments := make([]int32, k, k)
 	for docID, doc := range index.Documents {
 		index.LoopOverDocumentPostings(int32(docID), func(posting *indices.Posting) {
-			(*centroids)[doc.ClusterID][posting.Index] += tf(posting.Count, doc.Length) * idf(index, posting.Index)
+			(*index).Centroids[doc.ClusterID][posting.Index] += tf(posting.Count, doc.Length) * idf(index, posting.Index)
 			// (*centroids)[doc.ClusterID][posting.Index] += tf(posting.Count, doc.Length)
 		})
 		numberOfDocuments[doc.ClusterID] += 1
@@ -174,7 +191,7 @@ func NewCentroids(index *indices.TotalIndex, k int, centroids *[][]float64) {
 
 	for i := 0; i < k; i++ {
 		for j := 0; j < len(index.Inverse.PostingLists); j++ {
-			(*centroids)[i][j] /= float64(numberOfDocuments[i])
+			(*index).Centroids[i][j] /= float64(numberOfDocuments[i])
 		}
 	}
 }
@@ -184,7 +201,7 @@ func sqr(x float64) float64 {
 }
 
 // Returns the sum of the distance between a centroid and the documents in ints cluster for all the clusters
-func rss(index *indices.TotalIndex, centroids [][]float64) float64 {
+func rss(index *indices.TotalIndex) float64 {
 	var sum float64
 
 	for docID, doc := range index.Documents {
@@ -192,7 +209,7 @@ func rss(index *indices.TotalIndex, centroids [][]float64) float64 {
 			return -1
 		}
 
-		sum += distance(index, centroids[doc.ClusterID], int32(docID))
+		sum += distance(index, doc.ClusterID, int32(docID))
 	}
 	return sum
 }
@@ -209,12 +226,12 @@ func PrintClusters(index *indices.TotalIndex, k int) {
 }
 
 // Finds the centroid with minimal distance to the document
-func closestCentroid(index *indices.TotalIndex, centroids *[][]float64, documentId int32) int {
+func closestCentroid(index *indices.TotalIndex, documentId int32) int {
 	min := float64(math.MaxFloat32)
 	ind := -1
 
-	for i := 0; i < len(*centroids); i++ {
-		dist := distance(index, (*centroids)[i], documentId)
+	for i := 0; i < len((*index).Centroids); i++ {
+		dist := distance(index, i, documentId)
 		if dist < min {
 			min = dist
 			ind = i
@@ -227,9 +244,10 @@ func closestCentroid(index *indices.TotalIndex, centroids *[][]float64, document
 
 // Finds the squared distance between the centroid (witch is an array with exact length of the total number of terms)
 // and a document (which is a much sparser array)
-func distance(index *indices.TotalIndex, centroid []float64, documentId int32) float64 {
+func distance(index *indices.TotalIndex, centroidIndex int, documentId int32) float64 {
 	sum := float64(0)
 	doclen := index.Documents[documentId].Length
+	centroid := (*index).Centroids[centroidIndex]
 
 	posting := &index.Forward.Postings[index.Forward.PostingLists[documentId].FirstIndex]
 	ind := posting.Index
@@ -249,4 +267,52 @@ func distance(index *indices.TotalIndex, centroid []float64, documentId int32) f
 		}
 	}
 	return sum
+}
+
+type IndexedTerm struct {
+	index int32
+	count int32
+}
+
+func distanceToInfo(index *indices.TotalIndex, centroidIndex int, info *indices.InfoAndTerms) float64 {
+	sum := float64(0)
+	centroid := (*index).Centroids[centroidIndex]
+
+	termIndices := make([]IndexedTerm, 0, info.TermsAndCounts.Size())
+	var ind int32
+	info.TermsAndCounts.Walk(func(word []byte, value int32) {
+		ind = index.Dictionary.Get(word)
+		if ind != -1 {
+			termIndices = append(termIndices, IndexedTerm{index: ind, count: value})
+		}
+	})
+
+	sort.Slice(termIndices, func(i, j int) bool { return termIndices[i].index < termIndices[j].index })
+
+	j := 0
+	for i := 0; i < len(centroid); i++ {
+		if i == int(termIndices[j].index) {
+			j++
+			sum += sqr(centroid[i] - tf(termIndices[j].count, info.Length)*idf(index, int32(i)))
+		}
+
+		sum += sqr(centroid[i])
+	}
+	return sum
+}
+
+func ClosestCentroidToInfo(index *indices.TotalIndex, info *indices.InfoAndTerms) int {
+	min := float64(math.MaxFloat32)
+	ind := -1
+
+	for i := 0; i < len((*index).Centroids); i++ {
+		dist := distanceToInfo(index, i, info)
+		if dist < min {
+			min = dist
+			ind = i
+
+		}
+	}
+
+	return ind
 }
