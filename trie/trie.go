@@ -18,6 +18,10 @@ func (t *Trie) Empty() bool {
 	return t.MaxIndex == 0
 }
 
+func (t *Trie) Size() int32 {
+	return t.MaxIndex
+}
+
 func New() *Trie {
 	return &Trie{
 		MaxIndex:    0,
