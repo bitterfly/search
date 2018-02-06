@@ -33,30 +33,18 @@ func tableise(index *indices.TotalIndex, k int) [][]int {
 	return t
 }
 
-func MostCommonClassInCluster(index *indices.TotalIndex, clusterIndex int) int32 {
-	classes := make(map[int32]int)
-
-	for _, doc := range index.Documents {
-		if doc.ClusterID == clusterIndex {
-			for _, class := range doc.Classes {
-				classes[class] += 1
-			}
-		}
-	}
-
-	_, mostCommonClass := getMaxDict(classes)
-	return mostCommonClass
-}
-
-func Purity(index *indices.TotalIndex, k int) (float64, []int32) {
+func Purity(index *indices.TotalIndex, k int) (float64, []map[int32]int) {
 	uc := make([]map[int32]int, k, k)
-	commonCLasses := make([]int32, k, k)
+	docWithClasses := 0
 
 	for i, _ := range uc {
 		uc[i] = make(map[int32]int)
 	}
 
 	for _, doc := range index.Documents {
+		if len(doc.Classes) != 0 {
+			docWithClasses += 1
+		}
 		for _, class := range doc.Classes {
 			uc[doc.ClusterID][class] += 1
 		}
@@ -64,32 +52,26 @@ func Purity(index *indices.TotalIndex, k int) (float64, []int32) {
 
 	sum := 0
 	var max int
-	var class int32
 
 	for i := 0; i < k; i++ {
-		max, class = getMaxDict(uc[i])
+		max = getMaxDict(uc[i])
 		sum += max
-
-		commonCLasses[i] = class
 	}
 
-	return float64(sum) / float64(len(index.Documents)), commonCLasses
+	return float64(sum) / float64(docWithClasses), uc
 }
 
 //returns how many documents in cluster have the most common class and the class id
-func getMaxDict(d map[int32]int) (int, int32) {
+func getMaxDict(d map[int32]int) int {
 	max := 0
-	var class int32 = -1
-
-	for k, v := range d {
+	for _, v := range d {
 		if v > max {
 			max = v
-			class = k
 		}
 
 	}
 
-	return max, class
+	return max
 }
 
 func KMeans(index *indices.TotalIndex, k int) []float64 {
