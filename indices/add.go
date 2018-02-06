@@ -1,6 +1,7 @@
 package indices
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"sort"
@@ -26,17 +27,23 @@ type TermAndCount struct {
 	Count  int32
 }
 
-func (d *InfoAndTerms) Print() {
-	fmt.Printf("************\n")
-	fmt.Printf(
-		"name: %s, classes: %v, length: %d\nterms:\n",
+func (d *InfoAndTerms) String() string {
+	var buffer bytes.Buffer
+
+	buffer.WriteString("************\n")
+	buffer.WriteString(fmt.Sprintf(
+		// "name: %s, classes: %v, length: %d\nterms:\n",
+		"name: %s, classes: %v, length: %d\n",
 		d.Name,
 		d.Classes,
 		d.Length,
-	)
-	d.TermsAndCounts.Walk(func(term []byte, count int32) {
-		fmt.Printf("  %s: %d\n", string(term), count)
-	})
+	))
+
+	// d.TermsAndCounts.Walk(func(term []byte, count int32) {
+	// 	buffer.WriteString(fmt.Sprintf("  %s: %d\n", string(term), count))
+	// })
+
+	return buffer.String()
 }
 
 func (t *TotalIndex) AddMany(infosAndTerms <-chan *InfoAndTerms) {
