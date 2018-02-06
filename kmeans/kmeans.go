@@ -292,8 +292,10 @@ func distanceToInfo(index *indices.TotalIndex, centroidIndex int, info *indices.
 	j := 0
 	for i := 0; i < len(centroid); i++ {
 		if i == int(termIndices[j].index) {
-			j++
 			sum += sqr(centroid[i] - tf(termIndices[j].count, info.Length)*idf(index, int32(i)))
+			if j < len(termIndices)-1 {
+				j++
+			}
 		}
 
 		sum += sqr(centroid[i])
