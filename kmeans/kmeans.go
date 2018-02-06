@@ -99,8 +99,8 @@ func KMeans(index *indices.TotalIndex, k int) []float64 {
 	i := 0
 	for docID, _ := range centroidIndices {
 		index.LoopOverDocumentPostings(docID, func(posting *indices.Posting) {
-			index.Centroids[i][posting.Index] = tf(posting.Count, index.Documents[docID].Length) * idf(index, posting.Index)
-			// centroids[i][posting.Index] = tf(posting.Count, index.Documents[docID].Length)
+			// index.Centroids[i][posting.Index] = tf(posting.Count, index.Documents[docID].Length) * idf(index, posting.Index)
+			index.Centroids[i][posting.Index] = tf(posting.Count, index.Documents[docID].Length)
 		})
 		// fmt.Printf("CentroidId %d\n", docID)
 		i++
@@ -165,8 +165,8 @@ func NewCentroids(index *indices.TotalIndex, k int) {
 	numberOfDocuments := make([]int32, k, k)
 	for docID, doc := range index.Documents {
 		index.LoopOverDocumentPostings(int32(docID), func(posting *indices.Posting) {
-			(*index).Centroids[doc.ClusterID][posting.Index] += tf(posting.Count, doc.Length) * idf(index, posting.Index)
-			// (*centroids)[doc.ClusterID][posting.Index] += tf(posting.Count, doc.Length)
+			// (*index).Centroids[doc.ClusterID][posting.Index] += tf(posting.Count, doc.Length) * idf(index, posting.Index)
+			(*index).Centroids[doc.ClusterID][posting.Index] += tf(posting.Count, doc.Length)
 		})
 		numberOfDocuments[doc.ClusterID] += 1
 	}
@@ -236,8 +236,8 @@ func distance(index *indices.TotalIndex, centroidIndex int, documentId int32) fl
 
 	for i := 0; i < len(centroid); i++ {
 		if int32(i) == ind {
-			sum += sqr(centroid[i] - tf(posting.Count, doclen)*idf(index, posting.Index))
-			// sum += sqr(centroid[i] - tf(posting.Count, doclen))
+			// sum += sqr(centroid[i] - tf(posting.Count, doclen)*idf(index, posting.Index))
+			sum += sqr(centroid[i] - tf(posting.Count, doclen))
 			if posting.NextPostingIndex != int32(-1) {
 				posting = &index.Forward.Postings[posting.NextPostingIndex]
 				ind = posting.Index
